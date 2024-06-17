@@ -7,6 +7,5 @@ edition = "2021"
 
 [dependencies]
 parley = { version = "0.1", default-features = false, features = ["std", "system"] }
-peniko = { version = "0.1", default-features = false, features = ["std"] }
 skrifa = { version = "0.19", default-features = false, features = ["std"] }
 tiny-skia = { version = "0.11", default-features = false, features = ["std"] }

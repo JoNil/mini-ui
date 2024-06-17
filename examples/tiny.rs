@@ -6,16 +6,13 @@ use parley::{
     style::{FontStack, FontWeight, StyleProperty},
     FontContext, LayoutContext,
 };
-use peniko::{Brush as PenikoBrush, Color as PenikoColor};
 use skrifa::{
     instance::{LocationRef, NormalizedCoord, Size},
     outline::{DrawSettings, OutlinePen},
     raw::FontRef as ReadFontsRef,
     GlyphId, MetadataProvider, OutlineGlyph,
 };
-use tiny_skia::{
-    Color as TinySkiaColor, FillRule, Paint, PathBuilder, Pixmap, PixmapMut, Transform,
-};
+use tiny_skia::{Color, FillRule, Paint, PathBuilder, Pixmap, PixmapMut, Transform};
 
 const WIDTH: usize = 640;
 const HEIGHT: usize = 360;
@@ -52,8 +49,8 @@ fn draw() -> Vec<u8> {
     let display_scale = 1.0;
     let max_advance = Some(200.0 * display_scale);
 
-    let foreground_color = PenikoBrush::from(PenikoColor::rgb8(0, 0, 0));
-    let background_color = PenikoBrush::from(PenikoColor::rgb8(255, 255, 255));
+    let foreground_color = [0, 0, 0];
+    let background_color = [255, 255, 255];
 
     let padding = 20;
 
@@ -75,15 +72,19 @@ fn draw() -> Vec<u8> {
     let bold_style = StyleProperty::FontWeight(bold);
     builder.push(&bold_style, 0..4);
 
-    let mut layout: Layout<PenikoBrush> = builder.build();
+    let mut layout: Layout<[u8; 3]> = builder.build();
     layout.break_all_lines(max_advance, Alignment::Start);
 
     let mut img = Pixmap::new(WIDTH as _, HEIGHT as _).unwrap();
-    img.fill(to_tiny_skia(&background_color));
+    img.fill(Color::from_rgba8(
+        background_color[0],
+        background_color[1],
+        background_color[2],
+        255,
+    ));
 
     let mut pen = TinySkiaPen::new(img.as_mut());
 
-    // Render each glyph run
     for line in layout.lines() {
         for glyph_run in line.glyph_runs() {
             render_glyph_run(&glyph_run, &mut pen, padding);
@@ -93,20 +94,12 @@ fn draw() -> Vec<u8> {
     img.take()
 }
 
-fn to_tiny_skia(color: &PenikoBrush) -> TinySkiaColor {
-    if let PenikoBrush::Solid(color) = color {
-        TinySkiaColor::from_rgba8(color.r, color.g, color.b, color.a)
-    } else {
-        panic!("Bad")
-    }
-}
-
-fn render_glyph_run(glyph_run: &GlyphRun<PenikoBrush>, pen: &mut TinySkiaPen<'_>, padding: u32) {
+fn render_glyph_run(glyph_run: &GlyphRun<[u8; 3]>, pen: &mut TinySkiaPen<'_>, padding: u32) {
     // Resolve properties of the GlyphRun
     let mut run_x = glyph_run.offset();
     let run_y = glyph_run.baseline();
     let style = glyph_run.style();
-    let color = &style.brush;
+    let color = style.brush;
 
     // Get the "Run" from the "GlyphRun"
     let run = glyph_run.run();
@@ -136,7 +129,7 @@ fn render_glyph_run(glyph_run: &GlyphRun<PenikoBrush>, pen: &mut TinySkiaPen<'_>
         let glyph_outline = outlines.get(glyph_id).unwrap();
 
         pen.set_origin(glyph_x, glyph_y);
-        pen.set_color(to_tiny_skia(color));
+        pen.set_color(color);
         pen.draw_glyph(&glyph_outline, font_size, &normalized_coords);
     }
 }
@@ -165,8 +158,9 @@ impl TinySkiaPen<'_> {
         self.y = y;
     }
 
-    fn set_color(&mut self, color: TinySkiaColor) {
-        self.paint.set_color(color);
+    fn set_color(&mut self, color: [u8; 3]) {
+        self.paint
+            .set_color(Color::from_rgba8(color[0], color[1], color[2], 255));
     }
 
     fn draw_glyph(
