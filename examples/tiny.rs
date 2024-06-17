@@ -76,10 +76,7 @@ fn draw() -> Vec<u8> {
     builder.push(&bold_style, 0..4);
 
     let mut layout: Layout<PenikoBrush> = builder.build();
-
     layout.break_all_lines(max_advance, Alignment::Start);
-    let width = layout.width().ceil() as u32;
-    let height = layout.height().ceil() as u32;
 
     let mut img = Pixmap::new(WIDTH as _, HEIGHT as _).unwrap();
     img.fill(to_tiny_skia(&background_color));
