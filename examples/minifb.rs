@@ -1,4 +1,4 @@
-use minifb::{Key, Window, WindowOptions};
+use mini_ui::window::{Key, Window, WindowOptions};
 
 const WIDTH: usize = 640;
 const HEIGHT: usize = 360;
