@@ -8,9 +8,9 @@ use parley::{
 };
 use skrifa::{
     instance::{LocationRef, NormalizedCoord, Size},
-    outline::{DrawSettings, OutlinePen},
-    raw::FontRef as ReadFontsRef,
-    GlyphId, MetadataProvider, OutlineGlyph,
+    outline::{DrawSettings, HintingInstance, HintingMode, OutlinePen},
+    raw::FontRef,
+    GlyphId, MetadataProvider, OutlineGlyph, OutlineGlyphCollection,
 };
 use tiny_skia::{Color, FillRule, Paint, PathBuilder, Pixmap, PixmapMut, Transform};
 
@@ -68,7 +68,7 @@ fn draw() -> Vec<u8> {
     builder.push_default(&StyleProperty::LineHeight(1.3));
     builder.push_default(&StyleProperty::FontSize(16.0));
 
-    let bold = FontWeight::new(600.0);
+    let bold = FontWeight::new(1600.0);
     let bold_style = StyleProperty::FontWeight(bold);
     builder.push(&bold_style, 0..4);
 
@@ -95,16 +95,11 @@ fn draw() -> Vec<u8> {
 }
 
 fn render_glyph_run(glyph_run: &GlyphRun<[u8; 3]>, pen: &mut TinySkiaPen<'_>, padding: u32) {
-    // Resolve properties of the GlyphRun
     let mut run_x = glyph_run.offset();
     let run_y = glyph_run.baseline();
     let style = glyph_run.style();
     let color = style.brush;
-
-    // Get the "Run" from the "GlyphRun"
     let run = glyph_run.run();
-
-    // Resolve properties of the Run
     let font = run.font();
     let font_size = run.font_size();
 
@@ -114,12 +109,10 @@ fn render_glyph_run(glyph_run: &GlyphRun<[u8; 3]>, pen: &mut TinySkiaPen<'_>, pa
         .map(|coord| NormalizedCoord::from_bits(*coord))
         .collect::<Vec<_>>();
 
-    // Get glyph outlines using Skrifa. This can be cached in production code.
     let font_collection_ref = font.data.as_ref();
-    let font_ref = ReadFontsRef::from_index(font_collection_ref, font.index).unwrap();
+    let font_ref = FontRef::from_index(font_collection_ref, font.index).unwrap();
     let outlines = font_ref.outline_glyphs();
 
-    // Iterates over the glyphs in the GlyphRun
     for glyph in glyph_run.glyphs() {
         let glyph_x = run_x + glyph.x + padding as f32;
         let glyph_y = run_y - glyph.y + padding as f32;
@@ -130,7 +123,7 @@ fn render_glyph_run(glyph_run: &GlyphRun<[u8; 3]>, pen: &mut TinySkiaPen<'_>, pa
 
         pen.set_origin(glyph_x, glyph_y);
         pen.set_color(color);
-        pen.draw_glyph(&glyph_outline, font_size, &normalized_coords);
+        pen.draw_glyph(&glyph_outline, font_size, &normalized_coords, &outlines);
     }
 }
 
@@ -168,9 +161,21 @@ impl TinySkiaPen<'_> {
         glyph: &OutlineGlyph<'_>,
         size: f32,
         normalized_coords: &[NormalizedCoord],
+        outlines: &OutlineGlyphCollection,
     ) {
         let location_ref = LocationRef::new(normalized_coords);
-        let settings = DrawSettings::unhinted(Size::new(size), location_ref);
+
+        let hints = HintingInstance::new(
+            outlines,
+            Size::new(size),
+            location_ref,
+            HintingMode::Smooth {
+                lcd_subpixel: None,
+                preserve_linear_metrics: true,
+            },
+        )
+        .unwrap();
+        let settings = DrawSettings::hinted(&hints, false);
         glyph.draw(settings, self).unwrap();
 
         let builder = core::mem::replace(&mut self.open_path, PathBuilder::new());
