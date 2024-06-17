@@ -14,21 +14,9 @@ fn main() {
     )
     .unwrap();
 
-    window.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
-
-    let mut ctx = mini_ui::new();
+    window.set_target_fps(60);
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
-        let commands = ctx.run(|ui| {
-            if ui.button() {
-                println!("Hi");
-            }
-
-            ui.label("hello");
-        });
-
-        mini_ui::render(&commands);
-
         window.update_with_buffer(&buffer, WIDTH, HEIGHT).unwrap();
     }
 }
