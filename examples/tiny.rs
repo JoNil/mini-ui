@@ -1,5 +1,3 @@
-use std::slice;
-
 use mini_ui::window::{Key, Window, WindowOptions};
 use parley::{
     layout::{Alignment, GlyphRun, Layout},
@@ -12,6 +10,7 @@ use skrifa::{
     raw::FontRef,
     GlyphId, MetadataProvider, OutlineGlyph, OutlineGlyphCollection,
 };
+use std::slice;
 use tiny_skia::{Color, FillRule, Paint, PathBuilder, Pixmap, PixmapMut, Transform};
 
 const WIDTH: usize = 640;
