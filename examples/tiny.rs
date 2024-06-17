@@ -42,7 +42,7 @@ fn main() {
 
 fn draw() -> Vec<u8> {
     let text = String::from(
-        "Some text here. Let's make it a bit longer so that line wrapping kicks in 😊. And also some اللغة العربية arabic text.",
+        "Some text here. Let's make it a bit longer so that line wrapping kicks in. And also some اللغة العربية arabic text.",
     );
 
     let display_scale = 1.0;
