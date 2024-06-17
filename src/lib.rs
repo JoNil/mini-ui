@@ -1,3 +1,3 @@
-//pub mod draw;
+pub mod draw;
 mod path;
 pub mod window;
