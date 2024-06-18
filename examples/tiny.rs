@@ -1,4 +1,4 @@
-use minifb::{Key, Window, WindowOptions};
+use mini_ui::window::{Key, Window, WindowOptions};
 use parley::{
     layout::{Alignment, GlyphRun, Layout},
     style::{FontStack, FontWeight, StyleProperty},
