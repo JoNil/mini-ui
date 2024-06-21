@@ -428,22 +428,6 @@ impl Window {
         self.0.get_position()
     }
 
-    /// Makes the window the topmost window and makes it stay always on top. This is useful if you
-    /// want the window to float above all over windows
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// # use minifb::*;
-    /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
-    /// // Makes the window always on top
-    /// window.topmost(true);
-    /// ```
-    #[inline]
-    pub fn topmost(&self, topmost: bool) {
-        self.0.topmost(topmost)
-    }
-
     /// Sets the background color that is used with update_with_buffer.
     /// In some cases there will be a blank area around the buffer depending on the ScaleMode that has been set.
     /// This color will be used in the in that area.

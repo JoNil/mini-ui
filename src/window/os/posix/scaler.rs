@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_arguments, clippy::unnecessary_cast)]
+
 pub unsafe fn image_resize_linear(
     mut dst: *mut u32,
     dst_width: u32,
