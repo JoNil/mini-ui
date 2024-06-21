@@ -1,4 +1,3 @@
-#![cfg(target_os = "windows")]
 use crate::window::{
     check_buffer_size, error::Error, icon::Icon, key_handler::KeyHandler, rate::UpdateRate,
     CursorStyle, InputCallback, Key, KeyRepeat, MouseButton, MouseMode, Result, Scale, ScaleMode,

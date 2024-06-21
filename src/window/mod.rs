@@ -7,13 +7,7 @@ mod rate;
 
 use std::{ffi::c_void, fmt, time::Duration};
 
-#[cfg(any(
-    target_os = "linux",
-    target_os = "freebsd",
-    target_os = "dragonfly",
-    target_os = "netbsd",
-    target_os = "openbsd"
-))]
+#[cfg(target_os = "linux")]
 use os::posix as imp;
 #[cfg(target_os = "windows")]
 use os::windows as imp;
