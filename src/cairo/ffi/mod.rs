@@ -1,7 +1,9 @@
-#![allow(non_camel_case_types)]
 #![allow(clippy::unreadable_literal)]
-#![allow(clippy::write_literal)]
 #![allow(clippy::upper_case_acronyms)]
+#![allow(clippy::write_literal)]
+#![allow(dead_code)]
+#![allow(non_camel_case_types)]
+#![allow(non_upper_case_globals)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
 #[cfg(all(windows, feature = "win32-surface"))]

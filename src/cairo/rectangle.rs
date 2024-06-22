@@ -146,8 +146,6 @@ impl Rectangle {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[cfg(feature = "use_glib")]
     #[test]
     fn rectangle_gvalues() {

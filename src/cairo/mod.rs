@@ -1,3 +1,5 @@
+#![allow(clippy::missing_safety_doc)]
+
 #[cfg(feature = "freetype")]
 #[cfg_attr(docsrs, doc(cfg(feature = "freetype")))]
 pub use freetype;
@@ -323,7 +325,7 @@ mod borrowed {
     impl<T> AsRef<T> for Borrowed<T> {
         #[inline]
         fn as_ref(&self) -> &T {
-            &*self.0
+            &self.0
         }
     }
 
@@ -332,7 +334,7 @@ mod borrowed {
 
         #[inline]
         fn deref(&self) -> &T {
-            &*self.0
+            &self.0
         }
     }
 }
