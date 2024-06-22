@@ -12,7 +12,7 @@ fn main() {
     )
     .unwrap();
 
-    let buffer = vec![0; WIDTH * HEIGHT];
+    let buffer = vec![0xffff_ffff; WIDTH * HEIGHT];
 
     window.set_target_fps(60);
 
