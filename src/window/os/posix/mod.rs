@@ -1,9 +1,27 @@
 #![allow(non_upper_case_globals)]
 
-use crate::window::{
-    check_buffer_size, error::Error, icon::Icon, key_handler::KeyHandler, rate::UpdateRate,
-    CursorStyle, InputCallback, Key, KeyRepeat, MouseButton, MouseMode, Result, Scale, ScaleMode,
-    WindowOptions,
+use crate::{
+    window::{
+        check_buffer_size, error::Error, icon::Icon, key_handler::KeyHandler, rate::UpdateRate,
+        CursorStyle, InputCallback, Key, KeyRepeat, MouseButton, MouseMode, Result, Scale,
+        ScaleMode, WindowOptions,
+    },
+    xlib::{
+        self, KeyPressMask, KeyReleaseMask, KeySym, Status, XEvent, XIMPreeditNothing,
+        XIMStatusNothing, XK_Alt_L, XK_Alt_R, XK_BackSpace, XK_Caps_Lock, XK_Control_L,
+        XK_Control_R, XK_Delete, XK_Down, XK_End, XK_Escape, XK_Home, XK_Insert, XK_KP_Add,
+        XK_KP_Decimal, XK_KP_Divide, XK_KP_Enter, XK_KP_Equal, XK_KP_Multiply, XK_KP_Separator,
+        XK_KP_Subtract, XK_Left, XK_Menu, XK_Num_Lock, XK_Page_Down, XK_Page_Up, XK_Pause,
+        XK_Return, XK_Right, XK_Scroll_Lock, XK_Shift_L, XK_Shift_R, XK_Super_L, XK_Super_R,
+        XK_Tab, XK_Up, XK_a, XK_apostrophe, XK_b, XK_backslash, XK_bracketleft, XK_bracketright,
+        XK_c, XK_comma, XK_d, XK_e, XK_equal, XK_f, XK_g, XK_grave, XK_h, XK_i, XK_j, XK_k, XK_l,
+        XK_m, XK_minus, XK_n, XK_o, XK_p, XK_period, XK_q, XK_r, XK_s, XK_semicolon, XK_slash,
+        XK_space, XK_t, XK_u, XK_v, XK_w, XK_x, XK_y, XK_z, XKeyEvent, XNClientWindow_0,
+        XNFocusWindow_0, XNInputStyle_0, XWindowAttributes, XrmDatabase, XIC, XIM, XK_0, XK_1,
+        XK_2, XK_3, XK_4, XK_5, XK_6, XK_7, XK_8, XK_9, XK_F1, XK_F10, XK_F11, XK_F12, XK_F2,
+        XK_F3, XK_F4, XK_F5, XK_F6, XK_F7, XK_F8, XK_F9, XK_KP_0, XK_KP_1, XK_KP_2, XK_KP_3,
+        XK_KP_4, XK_KP_5, XK_KP_6, XK_KP_7, XK_KP_8, XK_KP_9,
+    },
 };
 use std::{
     convert::TryFrom,
@@ -11,25 +29,9 @@ use std::{
     mem::MaybeUninit,
     time::Duration,
 };
-use xlib::{
-    KeyPressMask, KeyReleaseMask, KeySym, Status, XEvent, XIMPreeditNothing, XIMStatusNothing,
-    XK_Alt_L, XK_Alt_R, XK_BackSpace, XK_Caps_Lock, XK_Control_L, XK_Control_R, XK_Delete, XK_Down,
-    XK_End, XK_Escape, XK_Home, XK_Insert, XK_KP_Add, XK_KP_Decimal, XK_KP_Divide, XK_KP_Enter,
-    XK_KP_Equal, XK_KP_Multiply, XK_KP_Separator, XK_KP_Subtract, XK_Left, XK_Menu, XK_Num_Lock,
-    XK_Page_Down, XK_Page_Up, XK_Pause, XK_Return, XK_Right, XK_Scroll_Lock, XK_Shift_L,
-    XK_Shift_R, XK_Super_L, XK_Super_R, XK_Tab, XK_Up, XK_a, XK_apostrophe, XK_b, XK_backslash,
-    XK_bracketleft, XK_bracketright, XK_c, XK_comma, XK_d, XK_e, XK_equal, XK_f, XK_g, XK_grave,
-    XK_h, XK_i, XK_j, XK_k, XK_l, XK_m, XK_minus, XK_n, XK_o, XK_p, XK_period, XK_q, XK_r, XK_s,
-    XK_semicolon, XK_slash, XK_space, XK_t, XK_u, XK_v, XK_w, XK_x, XK_y, XK_z, XKeyEvent,
-    XNClientWindow_0, XNFocusWindow_0, XNInputStyle_0, XWindowAttributes, XrmDatabase, XIC, XIM,
-    XK_0, XK_1, XK_2, XK_3, XK_4, XK_5, XK_6, XK_7, XK_8, XK_9, XK_F1, XK_F10, XK_F11, XK_F12,
-    XK_F2, XK_F3, XK_F4, XK_F5, XK_F6, XK_F7, XK_F8, XK_F9, XK_KP_0, XK_KP_1, XK_KP_2, XK_KP_3,
-    XK_KP_4, XK_KP_5, XK_KP_6, XK_KP_7, XK_KP_8, XK_KP_9,
-};
 
 mod scaler;
 mod xcursor;
-mod xlib;
 
 // NOTE: the x11-dl crate does not define Button6 or Button7
 const Button6: c_uint = xlib::Button5 + 1;

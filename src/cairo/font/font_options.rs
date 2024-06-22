@@ -1,15 +1,9 @@
 use std::hash;
 use std::ptr;
-#[cfg(feature = "v1_16")]
-use std::CString;
-
 
 use crate::cairo::{
     ffi, utils::status_to_result, Antialias, Error, HintMetrics, HintStyle, SubpixelOrder,
 };
-#[cfg(feature = "v1_16")]
-use crate::font::font_face::to_optional_string;
-
 
 #[derive(Debug)]
 #[doc(alias = "cairo_font_options_t")]
@@ -92,31 +86,6 @@ impl FontOptions {
     #[doc(alias = "get_hint_metrics")]
     pub fn hint_metrics(&self) -> HintMetrics {
         unsafe { HintMetrics::from(ffi::cairo_font_options_get_hint_metrics(self.to_raw_none())) }
-    }
-
-    #[cfg(feature = "v1_16")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "v1_16")))]
-    #[doc(alias = "cairo_font_options_get_variations")]
-    #[doc(alias = "get_variations")]
-    pub fn variations(&self) -> Option<String> {
-        unsafe { to_optional_string(ffi::cairo_font_options_get_variations(self.to_raw_none())) }
-    }
-
-    #[cfg(feature = "v1_16")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "v1_16")))]
-    #[doc(alias = "cairo_font_options_set_variations")]
-    pub fn set_variations(&self, variations: Option<&str>) {
-        unsafe {
-            match variations {
-                Some(v) => {
-                    let v = CString::new(v).unwrap();
-                    ffi::cairo_font_options_set_variations(self.to_raw_none(), v.as_ptr())
-                }
-                None => {
-                    ffi::cairo_font_options_set_variations(self.to_raw_none(), std::ptr::null())
-                }
-            }
-        }
     }
 
     #[doc(alias = "cairo_font_options_status")]

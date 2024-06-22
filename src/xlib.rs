@@ -13,6 +13,7 @@ pub type Bool = c_int;
 pub type Colormap = XID;
 pub type Cursor = XID;
 pub type Display = _XDisplay;
+pub type Drawable = XID;
 pub type Font = XID;
 pub type GC = *mut _XGC;
 pub type KeyCode = c_uchar;

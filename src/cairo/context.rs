@@ -289,21 +289,6 @@ impl Context {
         unsafe { ffi::cairo_get_line_width(self.0.as_ptr()) }
     }
 
-    #[cfg(feature = "v1_18")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "v1_18")))]
-    #[doc(alias = "cairo_set_hairline")]
-    pub fn set_hairline(&self, set_hairline: bool) {
-        unsafe { ffi::cairo_set_hairline(self.0.as_ptr(), set_hairline.into()) }
-    }
-
-    #[cfg(feature = "v1_18")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "v1_18")))]
-    #[doc(alias = "get_hairline")]
-    #[doc(alias = "cairo_get_hairline")]
-    pub fn hairline(&self) -> bool {
-        unsafe { ffi::cairo_get_hairline(self.0.as_ptr()) }.as_bool()
-    }
-
     #[doc(alias = "cairo_set_miter_limit")]
     pub fn set_miter_limit(&self, arg: f64) {
         unsafe { ffi::cairo_set_miter_limit(self.0.as_ptr(), arg) }
@@ -857,27 +842,6 @@ impl Context {
             ffi::cairo_path_extents(self.0.as_ptr(), &mut x1, &mut y1, &mut x2, &mut y2);
         }
         self.status().map(|_| (x1, y1, x2, y2))
-    }
-
-    #[cfg(feature = "v1_16")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "v1_16")))]
-    #[doc(alias = "cairo_tag_begin")]
-    pub fn tag_begin(&self, tag_name: &str, attributes: &str) {
-        unsafe {
-            let tag_name = CString::new(tag_name).unwrap();
-            let attributes = CString::new(attributes).unwrap();
-            ffi::cairo_tag_begin(self.0.as_ptr(), tag_name.as_ptr(), attributes.as_ptr())
-        }
-    }
-
-    #[cfg(feature = "v1_16")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "v1_16")))]
-    #[doc(alias = "cairo_tag_end")]
-    pub fn tag_end(&self, tag_name: &str) {
-        unsafe {
-            let tag_name = CString::new(tag_name).unwrap();
-            ffi::cairo_tag_end(self.0.as_ptr(), tag_name.as_ptr())
-        }
     }
 }
 

@@ -102,14 +102,13 @@ impl Device {
         unsafe { ffi::cairo_device_observer_stroke_elapsed(self.to_raw_none()) }
     }
 
-    #[cfg(any(feature = "xlib", feature = "xcb"))]
-    #[cfg_attr(docsrs, doc(cfg(any(feature = "xlib", feature = "xcb"))))]
+    #[cfg(target_os = "linux")]
+    #[cfg_attr(docsrs, doc(cfg(target_os = "linux")))]
     #[doc(alias = "cairo_xlib_device_debug_cap_xrender_version")]
     #[doc(alias = "cairo_xcb_device_debug_cap_xrender_version")]
     pub fn debug_cap_xrender_version(&self, _major_version: i32, _minor_version: i32) {
         match self.type_() {
             DeviceType::Xlib => {
-                #[cfg(feature = "xlib")]
                 unsafe {
                     ffi::cairo_xlib_device_debug_cap_xrender_version(
                         self.to_raw_none(),
@@ -117,83 +116,36 @@ impl Device {
                         _minor_version,
                     )
                 }
-                #[cfg(not(feature = "xlib"))]
-                {
-                    panic!("you need to enable \"xlib\" feature")
-                }
-            }
-            DeviceType::Xcb => {
-                #[cfg(feature = "xcb")]
-                unsafe {
-                    ffi::cairo_xcb_device_debug_cap_xrender_version(
-                        self.to_raw_none(),
-                        _major_version,
-                        _minor_version,
-                    )
-                }
-                #[cfg(not(feature = "xcb"))]
-                {
-                    panic!("you need to enable \"xcb\" feature")
-                }
             }
             d => panic!("invalid device type: {:#?}", d),
         }
     }
 
-    #[cfg(any(feature = "xlib", feature = "xcb"))]
-    #[cfg_attr(docsrs, doc(cfg(any(feature = "xlib", feature = "xcb"))))]
+    #[cfg(target_os = "linux")]
+    #[cfg_attr(docsrs, doc(cfg(target_os = "linux")))]
     #[doc(alias = "cairo_xlib_device_debug_get_precision")]
     #[doc(alias = "cairo_xcb_device_debug_get_precision")]
     pub fn debug_get_precision(&self) -> i32 {
         match self.type_() {
             DeviceType::Xlib => {
-                #[cfg(feature = "xlib")]
                 unsafe {
                     ffi::cairo_xlib_device_debug_get_precision(self.to_raw_none())
                 }
-                #[cfg(not(feature = "xlib"))]
-                {
-                    panic!("you need to enable \"xlib\" feature")
-                }
-            }
-            DeviceType::Xcb => {
-                #[cfg(feature = "xcb")]
-                unsafe {
-                    ffi::cairo_xcb_device_debug_get_precision(self.to_raw_none())
-                }
-                #[cfg(not(feature = "xcb"))]
-                {
-                    panic!("you need to enable \"xcb\" feature")
-                }
+                
             }
             d => panic!("invalid device type: {:#?}", d),
         }
     }
 
-    #[cfg(any(feature = "xlib", feature = "xcb"))]
-    #[cfg_attr(docsrs, doc(cfg(any(feature = "xlib", feature = "xcb"))))]
+    #[cfg(target_os = "linux")]
+    #[cfg_attr(docsrs, doc(cfg(target_os = "linux")))]
     #[doc(alias = "cairo_xlib_device_debug_set_precision")]
     #[doc(alias = "cairo_xcb_device_debug_set_precision")]
     pub fn debug_set_precision(&self, _precision: i32) {
         match self.type_() {
             DeviceType::Xlib => {
-                #[cfg(feature = "xlib")]
                 unsafe {
                     ffi::cairo_xlib_device_debug_set_precision(self.to_raw_none(), _precision)
-                }
-                #[cfg(not(feature = "xlib"))]
-                {
-                    panic!("you need to enable \"xlib\" feature")
-                }
-            }
-            DeviceType::Xcb => {
-                #[cfg(feature = "xcb")]
-                unsafe {
-                    ffi::cairo_xcb_device_debug_set_precision(self.to_raw_none(), _precision)
-                }
-                #[cfg(not(feature = "xcb"))]
-                {
-                    panic!("you need to enable \"xcb\" feature")
                 }
             }
             d => panic!("invalid device type: {:#?}", d),

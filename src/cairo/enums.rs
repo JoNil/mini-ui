@@ -1,5 +1,5 @@
-use std::fmt::Debug;
 use crate::cairo::{ffi, Error};
+use std::fmt::Debug;
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Debug, Copy)]
 #[non_exhaustive]
@@ -657,10 +657,6 @@ pub enum FontType {
     FontTypeQuartz,
     #[doc(alias = "FONT_TYPE_FONT_TYPE_USER")]
     FontTypeUser,
-    #[cfg(feature = "v1_18")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "v1_18")))]
-    #[doc(alias = "FONT_TYPE_FONT_TYPE_DWRITE")]
-    FontTypeDwrite,
     #[doc(hidden)]
     __Unknown(i32),
 }
@@ -674,8 +670,6 @@ impl From<FontType> for ffi::cairo_font_type_t {
             FontType::FontTypeWin32 => ffi::FONT_TYPE_FONT_TYPE_WIN32,
             FontType::FontTypeQuartz => ffi::FONT_TYPE_FONT_TYPE_QUARTZ,
             FontType::FontTypeUser => ffi::FONT_TYPE_FONT_TYPE_USER,
-            #[cfg(feature = "v1_18")]
-            FontType::FontTypeDwrite => ffi::FONT_TYPE_FONT_TYPE_DWRITE,
             FontType::__Unknown(value) => value,
         }
     }
@@ -690,8 +684,6 @@ impl From<ffi::cairo_font_type_t> for FontType {
             ffi::FONT_TYPE_FONT_TYPE_WIN32 => Self::FontTypeWin32,
             ffi::FONT_TYPE_FONT_TYPE_QUARTZ => Self::FontTypeQuartz,
             ffi::FONT_TYPE_FONT_TYPE_USER => Self::FontTypeUser,
-            #[cfg(feature = "v1_18")]
-            ffi::FONT_TYPE_FONT_TYPE_DWRITE => Self::FontTypeDwrite,
             value => Self::__Unknown(value),
         }
     }
@@ -954,78 +946,6 @@ impl From<ffi::cairo_surface_type_t> for SurfaceType {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-#[cfg(all(feature = "svg", feature = "v1_16"))]
-#[cfg_attr(docsrs, doc(cfg(all(feature = "svg", feature = "v1_16"))))]
-#[non_exhaustive]
-#[doc(alias = "cairo_svg_unit_t")]
-pub enum SvgUnit {
-    #[doc(alias = "SVG_UNIT_USER")]
-    User,
-    #[doc(alias = "SVG_UNIT_EM")]
-    Em,
-    #[doc(alias = "SVG_UNIT_EX")]
-    Ex,
-    #[doc(alias = "SVG_UNIT_PX")]
-    Px,
-    #[doc(alias = "SVG_UNIT_IN")]
-    In,
-    #[doc(alias = "SVG_UNIT_CM")]
-    Cm,
-    #[doc(alias = "SVG_UNIT_MM")]
-    Mm,
-    #[doc(alias = "SVG_UNIT_PT")]
-    Pt,
-    #[doc(alias = "SVG_UNIT_PC")]
-    Pc,
-    #[doc(alias = "SVG_UNIT_PERCENT")]
-    Percent,
-    #[doc(hidden)]
-    __Unknown(i32),
-}
-
-#[doc(hidden)]
-#[cfg(all(feature = "svg", feature = "v1_16"))]
-#[cfg_attr(docsrs, doc(cfg(all(feature = "svg", feature = "v1_16"))))]
-impl From<SvgUnit> for ffi::cairo_svg_unit_t {
-    fn from(val: SvgUnit) -> ffi::cairo_svg_unit_t {
-        match val {
-            SvgUnit::User => ffi::SVG_UNIT_USER,
-            SvgUnit::Em => ffi::SVG_UNIT_EM,
-            SvgUnit::Ex => ffi::SVG_UNIT_EX,
-            SvgUnit::Px => ffi::SVG_UNIT_PX,
-            SvgUnit::In => ffi::SVG_UNIT_IN,
-            SvgUnit::Cm => ffi::SVG_UNIT_CM,
-            SvgUnit::Mm => ffi::SVG_UNIT_MM,
-            SvgUnit::Pt => ffi::SVG_UNIT_PT,
-            SvgUnit::Pc => ffi::SVG_UNIT_PC,
-            SvgUnit::Percent => ffi::SVG_UNIT_PERCENT,
-            SvgUnit::__Unknown(value) => value,
-        }
-    }
-}
-
-#[doc(hidden)]
-#[cfg(all(feature = "svg", feature = "v1_16"))]
-#[cfg_attr(docsrs, doc(cfg(all(feature = "svg", feature = "v1_16"))))]
-impl From<ffi::cairo_svg_unit_t> for SvgUnit {
-    fn from(value: ffi::cairo_svg_unit_t) -> Self {
-        match value {
-            ffi::SVG_UNIT_USER => Self::User,
-            ffi::SVG_UNIT_EM => Self::Em,
-            ffi::SVG_UNIT_EX => Self::Ex,
-            ffi::SVG_UNIT_PX => Self::Px,
-            ffi::SVG_UNIT_IN => Self::In,
-            ffi::SVG_UNIT_CM => Self::Cm,
-            ffi::SVG_UNIT_MM => Self::Mm,
-            ffi::SVG_UNIT_PT => Self::Pt,
-            ffi::SVG_UNIT_PC => Self::Pc,
-            ffi::SVG_UNIT_PERCENT => Self::Percent,
-            value => Self::__Unknown(value),
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 #[doc(alias = "cairo_format_t")]
 pub enum Format {
@@ -1132,202 +1052,6 @@ impl From<ffi::cairo_region_overlap_t> for RegionOverlap {
     }
 }
 
-#[cfg(feature = "pdf")]
-#[cfg_attr(docsrs, doc(cfg(feature = "pdf")))]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-#[non_exhaustive]
-#[doc(alias = "cairo_pdf_metadata_t")]
-pub enum PdfMetadata {
-    #[doc(alias = "PDF_METADATA_TITLE")]
-    Title,
-    #[doc(alias = "PDF_METADATA_AUTHOR")]
-    Author,
-    #[doc(alias = "PDF_METADATA_SUBJECT")]
-    Subject,
-    #[doc(alias = "PDF_METADATA_KEYWORDS")]
-    Keywords,
-    #[doc(alias = "PDF_METADATA_CREATOR")]
-    Creator,
-    #[doc(alias = "PDF_METADATA_CREATE_DATE")]
-    CreateDate,
-    #[doc(alias = "PDF_METADATA_MOD_DATE")]
-    ModDate,
-    #[doc(hidden)]
-    __Unknown(i32),
-}
-
-#[cfg(all(feature = "pdf", feature = "v1_16"))]
-#[cfg_attr(docsrs, doc(cfg(all(feature = "pdf", feature = "v1_16"))))]
-#[doc(hidden)]
-impl From<PdfMetadata> for ffi::cairo_pdf_metadata_t {
-    fn from(val: PdfMetadata) -> ffi::cairo_pdf_metadata_t {
-        match val {
-            PdfMetadata::Title => ffi::PDF_METADATA_TITLE,
-            PdfMetadata::Author => ffi::PDF_METADATA_AUTHOR,
-            PdfMetadata::Subject => ffi::PDF_METADATA_SUBJECT,
-            PdfMetadata::Keywords => ffi::PDF_METADATA_KEYWORDS,
-            PdfMetadata::Creator => ffi::PDF_METADATA_CREATOR,
-            PdfMetadata::CreateDate => ffi::PDF_METADATA_CREATE_DATE,
-            PdfMetadata::ModDate => ffi::PDF_METADATA_MOD_DATE,
-            PdfMetadata::__Unknown(value) => value,
-        }
-    }
-}
-
-#[cfg(all(feature = "pdf", feature = "v1_16"))]
-#[cfg_attr(docsrs, doc(cfg(all(feature = "pdf", feature = "v1_16"))))]
-#[doc(hidden)]
-impl From<ffi::cairo_pdf_metadata_t> for PdfMetadata {
-    fn from(value: ffi::cairo_pdf_metadata_t) -> Self {
-        match value {
-            ffi::PDF_METADATA_TITLE => Self::Title,
-            ffi::PDF_METADATA_AUTHOR => Self::Author,
-            ffi::PDF_METADATA_SUBJECT => Self::Subject,
-            ffi::PDF_METADATA_KEYWORDS => Self::Keywords,
-            ffi::PDF_METADATA_CREATOR => Self::Creator,
-            ffi::PDF_METADATA_CREATE_DATE => Self::CreateDate,
-            ffi::PDF_METADATA_MOD_DATE => Self::ModDate,
-            value => Self::__Unknown(value),
-        }
-    }
-}
-
-#[cfg(feature = "pdf")]
-#[cfg_attr(docsrs, doc(cfg(feature = "pdf")))]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-#[non_exhaustive]
-#[doc(alias = "cairo_pdf_version_t")]
-pub enum PdfVersion {
-    #[doc(alias = "PDF_VERSION__1_4")]
-    _1_4,
-    #[doc(alias = "PDF_VERSION__1_5")]
-    _1_5,
-    #[cfg(feature = "v1_18")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "v1_18")))]
-    #[doc(alias = "PDF_VERSION__1_6")]
-    _1_6,
-    #[cfg(feature = "v1_18")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "v1_18")))]
-    #[doc(alias = "PDF_VERSION__1_7")]
-    _1_7,
-    #[doc(hidden)]
-    __Unknown(i32),
-}
-
-#[cfg(feature = "pdf")]
-#[cfg_attr(docsrs, doc(cfg(feature = "pdf")))]
-#[doc(hidden)]
-impl From<PdfVersion> for ffi::cairo_pdf_version_t {
-    fn from(val: PdfVersion) -> ffi::cairo_pdf_version_t {
-        match val {
-            PdfVersion::_1_4 => ffi::PDF_VERSION__1_4,
-            PdfVersion::_1_5 => ffi::PDF_VERSION__1_5,
-            #[cfg(feature = "v1_18")]
-            PdfVersion::_1_6 => ffi::PDF_VERSION__1_6,
-            #[cfg(feature = "v1_18")]
-            PdfVersion::_1_7 => ffi::PDF_VERSION__1_7,
-            PdfVersion::__Unknown(value) => value,
-        }
-    }
-}
-
-#[cfg(feature = "pdf")]
-#[cfg_attr(docsrs, doc(cfg(feature = "pdf")))]
-#[doc(hidden)]
-impl From<ffi::cairo_pdf_version_t> for PdfVersion {
-    fn from(value: ffi::cairo_pdf_version_t) -> Self {
-        match value {
-            ffi::PDF_VERSION__1_4 => Self::_1_4,
-            ffi::PDF_VERSION__1_5 => Self::_1_5,
-            #[cfg(feature = "v1_18")]
-            ffi::PDF_VERSION__1_6 => Self::_1_6,
-            #[cfg(feature = "v1_18")]
-            ffi::PDF_VERSION__1_7 => Self::_1_7,
-            value => Self::__Unknown(value),
-        }
-    }
-}
-
-#[cfg(feature = "svg")]
-#[cfg_attr(docsrs, doc(cfg(feature = "svg")))]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-#[non_exhaustive]
-#[doc(alias = "cairo_svg_version_t")]
-pub enum SvgVersion {
-    #[doc(alias = "SVG_VERSION__1_1")]
-    _1_1,
-    #[doc(alias = "SVG_VERSION__1_2")]
-    _1_2,
-    #[doc(hidden)]
-    __Unknown(i32),
-}
-
-#[cfg(feature = "svg")]
-#[cfg_attr(docsrs, doc(cfg(feature = "svg")))]
-#[doc(hidden)]
-impl From<SvgVersion> for ffi::cairo_svg_version_t {
-    fn from(val: SvgVersion) -> ffi::cairo_svg_version_t {
-        match val {
-            SvgVersion::_1_1 => ffi::SVG_VERSION__1_1,
-            SvgVersion::_1_2 => ffi::SVG_VERSION__1_2,
-            SvgVersion::__Unknown(value) => value,
-        }
-    }
-}
-
-#[cfg(feature = "svg")]
-#[cfg_attr(docsrs, doc(cfg(feature = "svg")))]
-#[doc(hidden)]
-impl From<ffi::cairo_svg_version_t> for SvgVersion {
-    fn from(value: ffi::cairo_svg_version_t) -> Self {
-        match value {
-            ffi::SVG_VERSION__1_1 => Self::_1_1,
-            ffi::SVG_VERSION__1_2 => Self::_1_2,
-            value => Self::__Unknown(value),
-        }
-    }
-}
-
-#[cfg(feature = "ps")]
-#[cfg_attr(docsrs, doc(cfg(feature = "ps")))]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-#[non_exhaustive]
-#[doc(alias = "cairo_ps_level_t")]
-pub enum PsLevel {
-    #[doc(alias = "PS_LEVEL__2")]
-    _2,
-    #[doc(alias = "PS_LEVEL__3")]
-    _3,
-    #[doc(hidden)]
-    __Unknown(i32),
-}
-
-#[cfg(feature = "ps")]
-#[cfg_attr(docsrs, doc(cfg(feature = "ps")))]
-#[doc(hidden)]
-impl From<PsLevel> for ffi::cairo_ps_level_t {
-    fn from(val: PsLevel) -> ffi::cairo_ps_level_t {
-        match val {
-            PsLevel::_2 => ffi::PS_LEVEL__2,
-            PsLevel::_3 => ffi::PS_LEVEL__3,
-            PsLevel::__Unknown(value) => value,
-        }
-    }
-}
-
-#[cfg(feature = "ps")]
-#[cfg_attr(docsrs, doc(cfg(feature = "ps")))]
-#[doc(hidden)]
-impl From<ffi::cairo_ps_level_t> for PsLevel {
-    fn from(value: ffi::cairo_ps_level_t) -> Self {
-        match value {
-            ffi::PS_LEVEL__2 => Self::_2,
-            ffi::PS_LEVEL__3 => Self::_3,
-            value => Self::__Unknown(value),
-        }
-    }
-}
-
 #[derive(Clone, PartialEq, Eq, PartialOrd, Copy, Debug)]
 #[non_exhaustive]
 #[doc(alias = "cairo_mesh_corner_t")]
@@ -1365,46 +1089,6 @@ impl From<ffi::cairo_mesh_corner_t> for MeshCorner {
             ffi::MESH_CORNER_MESH_CORNER1 => Self::MeshCorner1,
             ffi::MESH_CORNER_MESH_CORNER2 => Self::MeshCorner2,
             ffi::MESH_CORNER_MESH_CORNER3 => Self::MeshCorner3,
-            value => Self::__Unknown(value),
-        }
-    }
-}
-
-#[cfg(feature = "freetype")]
-#[cfg_attr(docsrs, doc(cfg(feature = "freetype")))]
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Copy)]
-#[non_exhaustive]
-#[doc(alias = "cairo_ft_synthesize_t")]
-pub enum FtSynthesize {
-    #[doc(alias = "CAIRO_FT_SYNTHESIZE_BOLD")]
-    Bold,
-    #[doc(alias = "CAIRO_FT_SYNTHESIZE_OBLIQUE")]
-    Oblique,
-    #[doc(hidden)]
-    __Unknown(u32),
-}
-
-#[cfg(feature = "freetype")]
-#[cfg_attr(docsrs, doc(cfg(feature = "freetype")))]
-#[doc(hidden)]
-impl From<FtSynthesize> for ffi::cairo_ft_synthesize_t {
-    fn from(val: FtSynthesize) -> ffi::cairo_ft_synthesize_t {
-        match val {
-            FtSynthesize::Bold => ffi::CAIRO_FT_SYNTHESIZE_BOLD,
-            FtSynthesize::Oblique => ffi::CAIRO_FT_SYNTHESIZE_OBLIQUE,
-            FtSynthesize::__Unknown(value) => value,
-        }
-    }
-}
-
-#[cfg(feature = "freetype")]
-#[cfg_attr(docsrs, doc(cfg(feature = "freetype")))]
-#[doc(hidden)]
-impl From<ffi::cairo_ft_synthesize_t> for FtSynthesize {
-    fn from(value: ffi::cairo_ft_synthesize_t) -> Self {
-        match value {
-            ffi::CAIRO_FT_SYNTHESIZE_BOLD => Self::Bold,
-            ffi::CAIRO_FT_SYNTHESIZE_OBLIQUE => Self::Oblique,
             value => Self::__Unknown(value),
         }
     }

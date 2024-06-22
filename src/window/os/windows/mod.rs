@@ -1,15 +1,16 @@
-use crate::window::{
-    check_buffer_size, error::Error, icon::Icon, key_handler::KeyHandler, rate::UpdateRate,
-    CursorStyle, InputCallback, Key, KeyRepeat, MouseButton, MouseMode, Result, Scale, ScaleMode,
-    WindowOptions,
+use crate::{
+    win32,
+    window::{
+        check_buffer_size, error::Error, icon::Icon, key_handler::KeyHandler, rate::UpdateRate,
+        CursorStyle, InputCallback, Key, KeyRepeat, MouseButton, MouseMode, Result, Scale,
+        ScaleMode, WindowOptions,
+    },
 };
 use std::{
     ffi::{c_void, OsStr},
     os::windows::ffi::OsStrExt,
     time::Duration,
 };
-
-mod win32;
 
 fn update_key_state(window: &mut Window, wparam: u32, state: bool) {
     match wparam & 0x1ff {

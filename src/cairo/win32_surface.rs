@@ -1,17 +1,21 @@
+#![allow(clippy::not_unsafe_ptr_arg_deref)]
+
+use crate::{
+    cairo::{ffi, Error, Format, Surface, SurfaceType},
+    win32::HDC,
+};
 use std::ops::Deref;
-pub use ffi::windows;
-use crate::{ffi, Error, Format, Surface, SurfaceType};
 
 declare_surface!(Win32Surface, SurfaceType::Win32);
 
 impl Win32Surface {
     #[doc(alias = "cairo_win32_surface_create")]
-    pub fn create(hdc: windows::HDC) -> Result<Win32Surface, Error> {
+    pub fn create(hdc: HDC) -> Result<Win32Surface, Error> {
         unsafe { Self::from_raw_full(ffi::cairo_win32_surface_create(hdc)) }
     }
 
     #[doc(alias = "cairo_win32_surface_create_with_format")]
-    pub fn create_with_format(hdc: windows::HDC, format: Format) -> Result<Win32Surface, Error> {
+    pub fn create_with_format(hdc: HDC, format: Format) -> Result<Win32Surface, Error> {
         unsafe {
             Self::from_raw_full(ffi::cairo_win32_surface_create_with_format(
                 hdc,
@@ -33,7 +37,7 @@ impl Win32Surface {
 
     #[doc(alias = "cairo_win32_surface_create_with_ddb")]
     pub fn create_with_ddb(
-        hdc: windows::HDC,
+        hdc: HDC,
         format: Format,
         width: i32,
         height: i32,
@@ -49,7 +53,7 @@ impl Win32Surface {
     }
 
     #[doc(alias = "cairo_win32_printing_surface_create")]
-    pub fn printing_surface_create(hdc: windows::HDC) -> Result<Win32Surface, Error> {
+    pub fn printing_surface_create(hdc: HDC) -> Result<Win32Surface, Error> {
         unsafe { Self::from_raw_full(ffi::cairo_win32_printing_surface_create(hdc)) }
     }
 }
