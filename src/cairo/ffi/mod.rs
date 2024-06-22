@@ -306,6 +306,7 @@ pub type cairo_user_scaled_font_unicode_to_glyph_func_t = Option<
     ) -> cairo_status_t,
 >;
 
+#[link(name = "cairo")]
 extern "C" {
     pub fn cairo_create(target: *mut cairo_surface_t) -> *mut cairo_t;
     pub fn cairo_reference(cr: *mut cairo_t) -> *mut cairo_t;
