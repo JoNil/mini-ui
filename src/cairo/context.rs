@@ -1,10 +1,4 @@
-#[cfg(feature = "use_glib")]
-use std::marker::PhantomData;
 use std::{ffi::CString, fmt, mem::MaybeUninit, ops, ptr, slice};
-
-#[cfg(feature = "use_glib")]
-use glib::translate::*;
-
 use crate::cairo::{
     ffi, utils::status_to_result, Antialias, Content, Error, FillRule, FontExtents, FontFace,
     FontOptions, FontSlant, FontWeight, Glyph, LineCap, LineJoin, Matrix, Operator, Path, Pattern,
@@ -53,65 +47,6 @@ impl fmt::Debug for RectangleList {
 #[repr(transparent)]
 #[doc(alias = "cairo_t")]
 pub struct Context(ptr::NonNull<ffi::cairo_t>);
-
-#[cfg(feature = "use_glib")]
-#[cfg_attr(docsrs, doc(cfg(feature = "use_glib")))]
-impl IntoGlibPtr<*mut ffi::cairo_t> for Context {
-    #[inline]
-    unsafe fn into_glib_ptr(self) -> *mut ffi::cairo_t {
-        (&*std::mem::ManuallyDrop::new(self)).to_glib_none().0
-    }
-}
-
-#[cfg(feature = "use_glib")]
-#[cfg_attr(docsrs, doc(cfg(feature = "use_glib")))]
-impl<'a> ToGlibPtr<'a, *mut ffi::cairo_t> for &'a Context {
-    type Storage = PhantomData<&'a Context>;
-
-    #[inline]
-    fn to_glib_none(&self) -> Stash<'a, *mut ffi::cairo_t, &'a Context> {
-        Stash(self.0.as_ptr(), PhantomData)
-    }
-
-    #[inline]
-    fn to_glib_full(&self) -> *mut ffi::cairo_t {
-        unsafe { ffi::cairo_reference(self.0.as_ptr()) }
-    }
-}
-
-#[cfg(feature = "use_glib")]
-#[cfg_attr(docsrs, doc(cfg(feature = "use_glib")))]
-impl FromGlibPtrNone<*mut ffi::cairo_t> for Context {
-    #[inline]
-    unsafe fn from_glib_none(ptr: *mut ffi::cairo_t) -> Context {
-        Self::from_raw_none(ptr)
-    }
-}
-
-#[cfg(feature = "use_glib")]
-#[cfg_attr(docsrs, doc(cfg(feature = "use_glib")))]
-impl FromGlibPtrBorrow<*mut ffi::cairo_t> for Context {
-    #[inline]
-    unsafe fn from_glib_borrow(ptr: *mut ffi::cairo_t) -> crate::Borrowed<Context> {
-        Self::from_raw_borrow(ptr)
-    }
-}
-
-#[cfg(feature = "use_glib")]
-#[cfg_attr(docsrs, doc(cfg(feature = "use_glib")))]
-impl FromGlibPtrFull<*mut ffi::cairo_t> for Context {
-    #[inline]
-    unsafe fn from_glib_full(ptr: *mut ffi::cairo_t) -> Context {
-        Self::from_raw_full(ptr)
-    }
-}
-
-#[cfg(feature = "use_glib")]
-gvalue_impl!(
-    Context,
-    ffi::cairo_t,
-    ffi::gobject::cairo_gobject_context_get_type
-);
 
 impl Clone for Context {
     #[inline]

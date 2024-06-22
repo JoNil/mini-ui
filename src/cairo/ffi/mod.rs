@@ -48,9 +48,6 @@ pub type cairo_operator_t = c_int;
 pub type cairo_pattern_type_t = c_int;
 pub type cairo_path_data_type_t = c_int;
 pub type cairo_region_overlap_t = c_int;
-#[cfg(feature = "script")]
-#[cfg_attr(docsrs, doc(cfg(feature = "script")))]
-pub type cairo_script_mode_t = c_int;
 pub type cairo_status_t = c_int;
 pub type cairo_subpixel_order_t = c_int;
 pub type cairo_surface_type_t = c_int;
@@ -1514,50 +1511,6 @@ extern "C" {
     #[cfg(target_os = "macos")]
     #[cfg_attr(docsrs, doc(cfg(target_os = "macos")))]
     pub fn cairo_quartz_surface_get_cg_context(surface: *mut cairo_surface_t) -> CGContextRef;
-
-    // CAIRO SCRIPT
-    #[cfg(feature = "script")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "script")))]
-    pub fn cairo_script_create(filename: *const c_char) -> *mut cairo_device_t;
-    #[cfg(feature = "script")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "script")))]
-    pub fn cairo_script_create_for_stream(
-        write_func: cairo_write_func_t,
-        closure: *mut c_void,
-    ) -> cairo_status_t;
-    #[cfg(feature = "script")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "script")))]
-    pub fn cairo_script_from_recording_surface(
-        script: *mut cairo_device_t,
-        surface: *mut cairo_surface_t,
-    ) -> cairo_status_t;
-    #[cfg(feature = "script")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "script")))]
-    pub fn cairo_script_get_mode(script: *mut cairo_device_t) -> cairo_script_mode_t;
-    #[cfg(feature = "script")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "script")))]
-    pub fn cairo_script_set_mode(script: *mut cairo_device_t, mode: cairo_script_mode_t);
-    #[cfg(feature = "script")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "script")))]
-    pub fn cairo_script_surface_create(
-        script: *mut cairo_device_t,
-        content: cairo_content_t,
-        width: c_double,
-        height: c_double,
-    ) -> *mut cairo_surface_t;
-    #[cfg(feature = "script")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "script")))]
-    pub fn cairo_script_surface_create_for_target(
-        script: *mut cairo_device_t,
-        target: *mut cairo_surface_t,
-    ) -> *mut cairo_surface_t;
-    #[cfg(feature = "script")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "script")))]
-    pub fn cairo_script_write_comment(
-        script: *mut cairo_device_t,
-        comment: *const c_char,
-        len: c_int,
-    );
     pub fn cairo_device_destroy(device: *mut cairo_device_t);
     pub fn cairo_device_status(device: *mut cairo_device_t) -> cairo_status_t;
     pub fn cairo_device_finish(device: *mut cairo_device_t);
@@ -1626,10 +1579,6 @@ extern "C" {
         font_face: *mut cairo_font_face_t,
     ) -> cairo_user_scaled_font_text_to_glyphs_func_t;
 }
-
-#[cfg(feature = "use_glib")]
-#[cfg_attr(docsrs, doc(cfg(feature = "use_glib")))]
-pub mod gobject;
 
 pub const STATUS_SUCCESS: i32 = 0;
 pub const STATUS_NO_MEMORY: i32 = 1;

@@ -1,27 +1,9 @@
 use std::{ffi::CString, mem::MaybeUninit, ptr};
-
-#[cfg(feature = "use_glib")]
-use glib::translate::*;
-
 use crate::cairo::{
     ffi, utils::status_to_result, Error, FontExtents, FontFace, FontOptions, FontType, Glyph,
     Matrix, TextCluster, TextExtents,
 };
 
-#[cfg(feature = "use_glib")]
-glib::wrapper! {
-    #[derive(Debug)]
-    #[doc(alias = "cairo_scaled_font_t")]
-    pub struct ScaledFont(Shared<ffi::cairo_scaled_font_t>);
-
-    match fn {
-        ref => |ptr| ffi::cairo_scaled_font_reference(ptr),
-        unref => |ptr| ffi::cairo_scaled_font_destroy(ptr),
-        type_ => || ffi::gobject::cairo_gobject_scaled_font_get_type(),
-    }
-}
-
-#[cfg(not(feature = "use_glib"))]
 #[derive(Debug)]
 #[doc(alias = "cairo_scaled_font_t")]
 pub struct ScaledFont(ptr::NonNull<ffi::cairo_scaled_font_t>);
@@ -48,38 +30,17 @@ impl ScaledFont {
         Ok(scaled_font)
     }
 
-    #[cfg(feature = "use_glib")]
-    #[inline]
-    pub fn to_raw_none(&self) -> *mut ffi::cairo_scaled_font_t {
-        self.to_glib_none().0
-    }
-
-    #[cfg(not(feature = "use_glib"))]
     #[inline]
     pub fn to_raw_none(&self) -> *mut ffi::cairo_scaled_font_t {
         self.0.as_ptr()
     }
 
-    #[cfg(not(feature = "use_glib"))]
     #[inline]
     pub unsafe fn from_raw_full(ptr: *mut ffi::cairo_scaled_font_t) -> ScaledFont {
         debug_assert!(!ptr.is_null());
         ScaledFont(ptr::NonNull::new_unchecked(ptr))
     }
 
-    #[cfg(feature = "use_glib")]
-    #[inline]
-    pub unsafe fn from_raw_full(ptr: *mut ffi::cairo_scaled_font_t) -> ScaledFont {
-        from_glib_full(ptr)
-    }
-
-    #[cfg(feature = "use_glib")]
-    #[inline]
-    pub unsafe fn from_raw_none(ptr: *mut ffi::cairo_scaled_font_t) -> ScaledFont {
-        from_glib_none(ptr)
-    }
-
-    #[cfg(not(feature = "use_glib"))]
     #[inline]
     pub unsafe fn from_raw_none(ptr: *mut ffi::cairo_scaled_font_t) -> ScaledFont {
         debug_assert!(!ptr.is_null());
@@ -262,7 +223,6 @@ impl ScaledFont {
     }
 }
 
-#[cfg(not(feature = "use_glib"))]
 impl Drop for ScaledFont {
     #[inline]
     fn drop(&mut self) {
@@ -272,7 +232,6 @@ impl Drop for ScaledFont {
     }
 }
 
-#[cfg(not(feature = "use_glib"))]
 impl Clone for ScaledFont {
     #[inline]
     fn clone(&self) -> ScaledFont {

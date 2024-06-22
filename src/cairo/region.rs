@@ -1,87 +1,10 @@
-#[cfg(feature = "use_glib")]
-use std::marker::PhantomData;
 use std::ptr;
-
-#[cfg(feature = "use_glib")]
-use glib::translate::*;
-
 use crate::cairo::{ffi, utils::status_to_result, Error, RectangleInt, RegionOverlap};
 
 #[derive(Debug)]
 #[repr(transparent)]
 #[doc(alias = "cairo_region_t")]
 pub struct Region(ptr::NonNull<ffi::cairo_region_t>);
-
-#[cfg(feature = "use_glib")]
-impl IntoGlibPtr<*mut ffi::cairo_region_t> for Region {
-    #[inline]
-    unsafe fn into_glib_ptr(self) -> *mut ffi::cairo_region_t {
-        (&*std::mem::ManuallyDrop::new(self)).to_glib_none().0
-    }
-}
-
-#[cfg(feature = "use_glib")]
-#[doc(hidden)]
-impl<'a> ToGlibPtr<'a, *mut ffi::cairo_region_t> for &'a Region {
-    type Storage = PhantomData<&'a Region>;
-
-    #[inline]
-    fn to_glib_none(&self) -> Stash<'a, *mut ffi::cairo_region_t, Self> {
-        Stash(self.0.as_ptr(), PhantomData)
-    }
-
-    #[inline]
-    fn to_glib_full(&self) -> *mut ffi::cairo_region_t {
-        unsafe { ffi::cairo_region_reference(self.0.as_ptr()) }
-    }
-}
-
-#[cfg(feature = "use_glib")]
-#[doc(hidden)]
-impl<'a> ToGlibPtrMut<'a, *mut ffi::cairo_region_t> for Region {
-    type Storage = PhantomData<&'a mut Self>;
-
-    // FIXME: This is unsafe: regions are reference counted, so we could get multiple mutable
-    // references here
-    #[inline]
-    fn to_glib_none_mut(&'a mut self) -> StashMut<'a, *mut ffi::cairo_region_t, Self> {
-        StashMut(self.0.as_ptr(), PhantomData)
-    }
-}
-
-#[cfg(feature = "use_glib")]
-#[doc(hidden)]
-impl FromGlibPtrNone<*mut ffi::cairo_region_t> for Region {
-    #[inline]
-    unsafe fn from_glib_none(ptr: *mut ffi::cairo_region_t) -> Region {
-        Self::from_raw_none(ptr)
-    }
-}
-
-#[cfg(feature = "use_glib")]
-#[doc(hidden)]
-impl FromGlibPtrBorrow<*mut ffi::cairo_region_t> for Region {
-    #[inline]
-    unsafe fn from_glib_borrow(ptr: *mut ffi::cairo_region_t) -> crate::Borrowed<Region> {
-        Self::from_raw_borrow(ptr)
-    }
-}
-
-#[cfg(feature = "use_glib")]
-#[doc(hidden)]
-impl FromGlibPtrFull<*mut ffi::cairo_region_t> for Region {
-    #[inline]
-    unsafe fn from_glib_full(ptr: *mut ffi::cairo_region_t) -> Region {
-        Self::from_raw_full(ptr)
-    }
-}
-
-#[cfg(feature = "use_glib")]
-gvalue_impl!(
-    Region,
-    ffi::cairo_region_t,
-    ffi::gobject::cairo_gobject_region_get_type
-);
 
 impl Clone for Region {
     #[inline]

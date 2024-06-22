@@ -1,11 +1,8 @@
 use std::hash;
-#[cfg(not(feature = "use_glib"))]
 use std::ptr;
 #[cfg(feature = "v1_16")]
 use std::CString;
 
-#[cfg(feature = "use_glib")]
-use glib::translate::*;
 
 use crate::cairo::{
     ffi, utils::status_to_result, Antialias, Error, HintMetrics, HintStyle, SubpixelOrder,
@@ -13,26 +10,7 @@ use crate::cairo::{
 #[cfg(feature = "v1_16")]
 use crate::font::font_face::to_optional_string;
 
-#[cfg(feature = "use_glib")]
-glib::wrapper! {
-    #[derive(Debug)]
-    #[doc(alias = "cairo_font_options_t")]
-    pub struct FontOptions(Boxed<ffi::cairo_font_options_t>);
 
-    match fn {
-        copy => |ptr| {
-            let ptr = ffi::cairo_font_options_copy(ptr);
-            let status = ffi::cairo_font_options_status(ptr);
-            status_to_result(status).expect("Failed to create a copy of FontOptions");
-            ptr
-        },
-        free => |ptr| ffi::cairo_font_options_destroy(ptr),
-        type_ => || ffi::gobject::cairo_gobject_font_options_get_type(),
-    }
-}
-
-#[cfg(not(feature = "use_glib"))]
-#[cfg_attr(docsrs, doc(cfg(not(feature = "use_glib"))))]
 #[derive(Debug)]
 #[doc(alias = "cairo_font_options_t")]
 pub struct FontOptions(ptr::NonNull<ffi::cairo_font_options_t>);
@@ -52,30 +30,12 @@ impl FontOptions {
         Ok(font_options)
     }
 
-    #[cfg(feature = "use_glib")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "use_glib")))]
-    #[inline]
-    pub unsafe fn from_raw_full(ptr: *mut ffi::cairo_font_options_t) -> Self {
-        from_glib_full(ptr)
-    }
-
-    #[cfg(not(feature = "use_glib"))]
-    #[cfg_attr(docsrs, doc(cfg(not(feature = "use_glib"))))]
     #[inline]
     pub unsafe fn from_raw_full(ptr: *mut ffi::cairo_font_options_t) -> Self {
         debug_assert!(!ptr.is_null());
         Self(ptr::NonNull::new_unchecked(ptr))
     }
 
-    #[cfg(feature = "use_glib")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "use_glib")))]
-    #[inline]
-    pub fn to_raw_none(&self) -> *mut ffi::cairo_font_options_t {
-        mut_override(self.to_glib_none().0)
-    }
-
-    #[cfg(not(feature = "use_glib"))]
-    #[cfg_attr(docsrs, doc(cfg(not(feature = "use_glib"))))]
     #[inline]
     pub fn to_raw_none(&self) -> *mut ffi::cairo_font_options_t {
         self.0.as_ptr()
@@ -185,8 +145,6 @@ impl hash::Hash for FontOptions {
     }
 }
 
-#[cfg(not(feature = "use_glib"))]
-#[cfg_attr(docsrs, doc(cfg(not(feature = "use_glib"))))]
 impl Drop for FontOptions {
     #[inline]
     fn drop(&mut self) {
@@ -196,8 +154,6 @@ impl Drop for FontOptions {
     }
 }
 
-#[cfg(not(feature = "use_glib"))]
-#[cfg_attr(docsrs, doc(cfg(not(feature = "use_glib"))))]
 impl Clone for FontOptions {
     #[inline]
     fn clone(&self) -> FontOptions {

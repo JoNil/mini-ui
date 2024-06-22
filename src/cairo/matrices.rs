@@ -1,9 +1,6 @@
 
 
 use std::fmt;
-#[cfg(feature = "use_glib")]
-use std::marker::PhantomData;
-
 use crate::cairo::{ffi, utils::status_to_result, Error};
 
 #[repr(transparent)]
@@ -194,74 +191,6 @@ impl fmt::Debug for Matrix {
             .finish()
     }
 }
-
-#[cfg(feature = "use_glib")]
-#[doc(hidden)]
-impl Uninitialized for Matrix {
-    #[inline]
-    unsafe fn uninitialized() -> Self {
-        std::mem::zeroed()
-    }
-}
-
-#[cfg(feature = "use_glib")]
-#[doc(hidden)]
-impl<'a> ToGlibPtr<'a, *const ffi::cairo_matrix_t> for Matrix {
-    type Storage = PhantomData<&'a Self>;
-
-    #[inline]
-    fn to_glib_none(&'a self) -> Stash<'a, *const ffi::cairo_matrix_t, Self> {
-        Stash(
-            self as *const Matrix as *const ffi::cairo_matrix_t,
-            PhantomData,
-        )
-    }
-}
-
-#[cfg(feature = "use_glib")]
-#[doc(hidden)]
-impl<'a> ToGlibPtrMut<'a, *mut ffi::cairo_matrix_t> for Matrix {
-    type Storage = PhantomData<&'a mut Self>;
-
-    #[inline]
-    fn to_glib_none_mut(&'a mut self) -> StashMut<'a, *mut ffi::cairo_matrix_t, Self> {
-        StashMut(self as *mut Matrix as *mut ffi::cairo_matrix_t, PhantomData)
-    }
-}
-
-#[cfg(feature = "use_glib")]
-#[doc(hidden)]
-impl FromGlibPtrNone<*const ffi::cairo_matrix_t> for Matrix {
-    #[inline]
-    unsafe fn from_glib_none(ptr: *const ffi::cairo_matrix_t) -> Self {
-        *(ptr as *const Matrix)
-    }
-}
-
-#[cfg(feature = "use_glib")]
-#[doc(hidden)]
-impl FromGlibPtrBorrow<*mut ffi::cairo_matrix_t> for Matrix {
-    #[inline]
-    unsafe fn from_glib_borrow(ptr: *mut ffi::cairo_matrix_t) -> crate::Borrowed<Self> {
-        crate::Borrowed::new(*(ptr as *mut Matrix))
-    }
-}
-
-#[cfg(feature = "use_glib")]
-#[doc(hidden)]
-impl FromGlibPtrNone<*mut ffi::cairo_matrix_t> for Matrix {
-    #[inline]
-    unsafe fn from_glib_none(ptr: *mut ffi::cairo_matrix_t) -> Self {
-        *(ptr as *mut Matrix)
-    }
-}
-
-#[cfg(feature = "use_glib")]
-gvalue_impl_inline!(
-    Matrix,
-    ffi::cairo_matrix_t,
-    ffi::gobject::cairo_gobject_matrix_get_type
-);
 
 #[cfg(test)]
 mod tests {

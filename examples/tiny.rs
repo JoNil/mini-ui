@@ -23,7 +23,7 @@ fn main() {
         let context = Context::new(&surface).unwrap();
 
         context.set_source_rgb(1.0, 1.0, 1.0);
-        context.paint();
+        context.paint().unwrap();
 
         context.select_font_face(
             "Helvetica",
@@ -33,7 +33,7 @@ fn main() {
         context.set_font_size(40.0);
         context.set_source_rgb(0.0, 0.0, 0.0);
         context.move_to(50.0, 100.0);
-        context.show_text("Hello, Cairo!");
+        context.show_text("Hello, Cairo!").unwrap();
     }
 
     window.set_target_fps(60);

@@ -1,11 +1,7 @@
 
 
 use std::{fmt, ops::Deref};
-
 use ffi::CGContextRef;
-#[cfg(feature = "use_glib")]
-use glib::translate::*;
-
 use crate::{ffi, Error, Format, Surface, SurfaceType};
 
 declare_surface!(QuartzSurface, SurfaceType::Quartz);

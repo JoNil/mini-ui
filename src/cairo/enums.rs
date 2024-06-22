@@ -1,55 +1,5 @@
 use std::fmt::Debug;
-
-#[cfg(feature = "use_glib")]
-use glib::translate::*;
-
 use crate::cairo::{ffi, Error};
-
-// Helper macro for our GValue related trait impls
-#[cfg(feature = "use_glib")]
-macro_rules! gvalue_impl {
-    ($name:ty, $get_type:expr) => {
-        impl glib::prelude::StaticType for $name {
-            #[inline]
-            fn static_type() -> glib::Type {
-                unsafe { from_glib($get_type()) }
-            }
-        }
-
-        impl glib::value::ValueType for $name {
-            type Type = Self;
-        }
-
-        unsafe impl<'a> glib::value::FromValue<'a> for $name {
-            type Checker = glib::value::GenericValueTypeChecker<Self>;
-
-            unsafe fn from_value(value: &'a glib::Value) -> Self {
-                Self::from(glib::gobject_ffi::g_value_get_enum(value.to_glib_none().0))
-            }
-        }
-
-        impl glib::value::ToValue for $name {
-            fn to_value(&self) -> glib::Value {
-                let mut value = glib::Value::for_value_type::<Self>();
-                unsafe {
-                    glib::gobject_ffi::g_value_set_enum(value.to_glib_none_mut().0, (*self).into());
-                }
-                value
-            }
-
-            fn value_type(&self) -> glib::Type {
-                <Self as glib::prelude::StaticType>::static_type()
-            }
-        }
-
-        impl From<$name> for glib::Value {
-            #[inline]
-            fn from(v: $name) -> Self {
-                glib::value::ToValue::to_value(&v)
-            }
-        }
-    };
-}
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Debug, Copy)]
 #[non_exhaustive]
@@ -109,9 +59,6 @@ impl From<ffi::cairo_antialias_t> for Antialias {
     }
 }
 
-#[cfg(feature = "use_glib")]
-gvalue_impl!(Antialias, ffi::gobject::cairo_gobject_antialias_get_type);
-
 #[derive(Clone, PartialEq, Eq, PartialOrd, Debug, Copy)]
 #[non_exhaustive]
 #[doc(alias = "cairo_fill_rule_t")]
@@ -145,9 +92,6 @@ impl From<ffi::cairo_fill_rule_t> for FillRule {
         }
     }
 }
-
-#[cfg(feature = "use_glib")]
-gvalue_impl!(FillRule, ffi::gobject::cairo_gobject_fill_rule_get_type);
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Debug, Copy)]
 #[non_exhaustive]
@@ -187,9 +131,6 @@ impl From<ffi::cairo_line_cap_t> for LineCap {
     }
 }
 
-#[cfg(feature = "use_glib")]
-gvalue_impl!(LineCap, ffi::gobject::cairo_gobject_line_cap_get_type);
-
 #[derive(Clone, PartialEq, Eq, PartialOrd, Debug, Copy)]
 #[non_exhaustive]
 #[doc(alias = "cairo_line_join_t")]
@@ -227,9 +168,6 @@ impl From<ffi::cairo_line_join_t> for LineJoin {
         }
     }
 }
-
-#[cfg(feature = "use_glib")]
-gvalue_impl!(LineJoin, ffi::gobject::cairo_gobject_line_join_get_type);
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Debug, Copy)]
 #[non_exhaustive]
@@ -377,9 +315,6 @@ impl From<ffi::cairo_operator_t> for Operator {
     }
 }
 
-#[cfg(feature = "use_glib")]
-gvalue_impl!(Operator, ffi::gobject::cairo_gobject_operator_get_type);
-
 #[derive(Clone, PartialEq, Eq, PartialOrd, Debug, Copy)]
 #[non_exhaustive]
 #[doc(alias = "cairo_path_data_type_t")]
@@ -422,12 +357,6 @@ impl From<ffi::cairo_path_data_type_t> for PathDataType {
     }
 }
 
-#[cfg(feature = "use_glib")]
-gvalue_impl!(
-    PathDataType,
-    ffi::gobject::cairo_gobject_path_data_type_get_type
-);
-
 #[derive(Clone, PartialEq, Eq, PartialOrd, Debug, Copy)]
 #[non_exhaustive]
 #[doc(alias = "cairo_content_t")]
@@ -465,9 +394,6 @@ impl From<ffi::cairo_content_t> for Content {
         }
     }
 }
-
-#[cfg(feature = "use_glib")]
-gvalue_impl!(Content, ffi::gobject::cairo_gobject_content_get_type);
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Debug, Copy)]
 #[non_exhaustive]
@@ -510,9 +436,6 @@ impl From<ffi::cairo_extend_t> for Extend {
         }
     }
 }
-
-#[cfg(feature = "use_glib")]
-gvalue_impl!(Extend, ffi::gobject::cairo_gobject_extend_get_type);
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Debug, Copy)]
 #[non_exhaustive]
@@ -564,9 +487,6 @@ impl From<ffi::cairo_filter_t> for Filter {
     }
 }
 
-#[cfg(feature = "use_glib")]
-gvalue_impl!(Filter, ffi::gobject::cairo_gobject_filter_get_type);
-
 #[derive(Clone, PartialEq, Eq, PartialOrd, Debug, Copy)]
 #[non_exhaustive]
 #[doc(alias = "cairo_pattern_type_t")]
@@ -617,12 +537,6 @@ impl From<ffi::cairo_pattern_type_t> for PatternType {
     }
 }
 
-#[cfg(feature = "use_glib")]
-gvalue_impl!(
-    PatternType,
-    ffi::gobject::cairo_gobject_pattern_type_get_type
-);
-
 #[derive(Clone, PartialEq, Eq, PartialOrd, Debug, Copy)]
 #[non_exhaustive]
 #[doc(alias = "cairo_font_slant_t")]
@@ -661,9 +575,6 @@ impl From<ffi::cairo_font_slant_t> for FontSlant {
     }
 }
 
-#[cfg(feature = "use_glib")]
-gvalue_impl!(FontSlant, ffi::gobject::cairo_gobject_font_slant_get_type);
-
 #[derive(Clone, PartialEq, Eq, PartialOrd, Debug, Copy)]
 #[non_exhaustive]
 #[doc(alias = "cairo_font_weight_t")]
@@ -698,9 +609,6 @@ impl From<ffi::cairo_font_weight_t> for FontWeight {
     }
 }
 
-#[cfg(feature = "use_glib")]
-gvalue_impl!(FontWeight, ffi::gobject::cairo_gobject_font_weight_get_type);
-
 #[derive(Clone, PartialEq, Eq, PartialOrd, Debug, Copy)]
 #[non_exhaustive]
 #[doc(alias = "cairo_text_cluster_flags_t")]
@@ -734,12 +642,6 @@ impl From<ffi::cairo_text_cluster_flags_t> for TextClusterFlags {
         }
     }
 }
-
-#[cfg(feature = "use_glib")]
-gvalue_impl!(
-    TextClusterFlags,
-    ffi::gobject::cairo_gobject_text_cluster_flags_get_type
-);
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Debug, Copy)]
 #[non_exhaustive]
@@ -795,9 +697,6 @@ impl From<ffi::cairo_font_type_t> for FontType {
     }
 }
 
-#[cfg(feature = "use_glib")]
-gvalue_impl!(FontType, ffi::gobject::cairo_gobject_font_type_get_type);
-
 #[derive(Clone, PartialEq, Eq, PartialOrd, Debug, Copy)]
 #[non_exhaustive]
 #[doc(alias = "cairo_subpixel_order_t")]
@@ -843,12 +742,6 @@ impl From<ffi::cairo_subpixel_order_t> for SubpixelOrder {
         }
     }
 }
-
-#[cfg(feature = "use_glib")]
-gvalue_impl!(
-    SubpixelOrder,
-    ffi::gobject::cairo_gobject_subpixel_order_get_type
-);
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Debug, Copy)]
 #[non_exhaustive]
@@ -896,9 +789,6 @@ impl From<ffi::cairo_hint_style_t> for HintStyle {
     }
 }
 
-#[cfg(feature = "use_glib")]
-gvalue_impl!(HintStyle, ffi::gobject::cairo_gobject_hint_style_get_type);
-
 #[derive(Clone, PartialEq, Eq, PartialOrd, Debug, Copy)]
 #[non_exhaustive]
 #[doc(alias = "cairo_hint_metrics_t")]
@@ -936,12 +826,6 @@ impl From<ffi::cairo_hint_metrics_t> for HintMetrics {
         }
     }
 }
-
-#[cfg(feature = "use_glib")]
-gvalue_impl!(
-    HintMetrics,
-    ffi::gobject::cairo_gobject_hint_metrics_get_type
-);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[non_exhaustive]
@@ -1069,12 +953,6 @@ impl From<ffi::cairo_surface_type_t> for SurfaceType {
     }
 }
 
-#[cfg(feature = "use_glib")]
-gvalue_impl!(
-    SurfaceType,
-    ffi::gobject::cairo_gobject_surface_type_get_type
-);
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[cfg(all(feature = "svg", feature = "v1_16"))]
 #[cfg_attr(docsrs, doc(cfg(all(feature = "svg", feature = "v1_16"))))]
@@ -1201,9 +1079,6 @@ impl From<ffi::cairo_format_t> for Format {
     }
 }
 
-#[cfg(feature = "use_glib")]
-gvalue_impl!(Format, ffi::gobject::cairo_gobject_format_get_type);
-
 impl Format {
     #[doc(alias = "cairo_format_stride_for_width")]
     pub fn stride_for_width(self, width: u32) -> Result<i32, Error> {
@@ -1256,12 +1131,6 @@ impl From<ffi::cairo_region_overlap_t> for RegionOverlap {
         }
     }
 }
-
-#[cfg(feature = "use_glib")]
-gvalue_impl!(
-    RegionOverlap,
-    ffi::gobject::cairo_gobject_region_overlap_get_type
-);
 
 #[cfg(feature = "pdf")]
 #[cfg_attr(docsrs, doc(cfg(feature = "pdf")))]
@@ -1541,46 +1410,6 @@ impl From<ffi::cairo_ft_synthesize_t> for FtSynthesize {
     }
 }
 
-#[cfg(feature = "script")]
-#[cfg_attr(docsrs, doc(cfg(feature = "script")))]
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Copy)]
-#[non_exhaustive]
-#[doc(alias = "cairo_script_mode_t")]
-pub enum ScriptMode {
-    #[doc(alias = "CAIRO_SCRIPT_MODE_ASCII")]
-    Ascii,
-    #[doc(alias = "CAIRO_SCRIPT_MODE_BINARY")]
-    Binary,
-    #[doc(hidden)]
-    __Unknown(i32),
-}
-
-#[cfg(feature = "script")]
-#[cfg_attr(docsrs, doc(cfg(feature = "script")))]
-#[doc(hidden)]
-impl From<ScriptMode> for ffi::cairo_script_mode_t {
-    fn from(val: ScriptMode) -> ffi::cairo_script_mode_t {
-        match val {
-            ScriptMode::Ascii => ffi::CAIRO_SCRIPT_MODE_ASCII,
-            ScriptMode::Binary => ffi::CAIRO_SCRIPT_MODE_BINARY,
-            ScriptMode::__Unknown(value) => value,
-        }
-    }
-}
-
-#[cfg(feature = "script")]
-#[cfg_attr(docsrs, doc(cfg(feature = "script")))]
-#[doc(hidden)]
-impl From<ffi::cairo_script_mode_t> for ScriptMode {
-    fn from(value: ffi::cairo_script_mode_t) -> Self {
-        match value {
-            ffi::CAIRO_SCRIPT_MODE_ASCII => Self::Ascii,
-            ffi::CAIRO_SCRIPT_MODE_BINARY => Self::Binary,
-            value => Self::__Unknown(value),
-        }
-    }
-}
-
 #[derive(Clone, PartialEq, Eq, PartialOrd, Debug, Copy)]
 #[non_exhaustive]
 #[doc(alias = "cairo_device_type_t")]
@@ -1642,9 +1471,6 @@ impl From<ffi::cairo_device_type_t> for DeviceType {
         }
     }
 }
-
-#[cfg(feature = "use_glib")]
-gvalue_impl!(DeviceType, ffi::gobject::cairo_gobject_device_type_get_type);
 
 #[cfg(test)]
 mod tests {

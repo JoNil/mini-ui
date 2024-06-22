@@ -1,11 +1,7 @@
 use std::ffi::{CStr, CString};
-#[cfg(not(feature = "use_glib"))]
 use std::ptr;
 #[cfg(feature = "freetype")]
 use std::rc::Rc;
-
-#[cfg(feature = "use_glib")]
-use glib::translate::*;
 
 use crate::cairo::{ffi, utils::status_to_result, Error, FontSlant, FontType, FontWeight};
 #[cfg(feature = "freetype")]
@@ -14,21 +10,6 @@ use crate::FtSynthesize;
 #[cfg(feature = "freetype")]
 static FT_FACE_KEY: crate::UserDataKey<freetype::face::Face> = crate::UserDataKey::new();
 
-#[cfg(feature = "use_glib")]
-glib::wrapper! {
-    #[derive(Debug)]
-    #[doc(alias = "cairo_font_face_t")]
-    pub struct FontFace(Shared<ffi::cairo_font_face_t>);
-
-    match fn {
-        ref => |ptr| ffi::cairo_font_face_reference(ptr),
-        unref => |ptr| ffi::cairo_font_face_destroy(ptr),
-        type_ => || ffi::gobject::cairo_gobject_font_face_get_type(),
-    }
-}
-
-#[cfg(not(feature = "use_glib"))]
-#[cfg_attr(docsrs, doc(cfg(not(feature = "use_glib"))))]
 #[derive(Debug)]
 #[doc(alias = "cairo_font_face_t")]
 pub struct FontFace(ptr::NonNull<ffi::cairo_font_face_t>);
@@ -106,39 +87,18 @@ impl FontFace {
         Ok(font_face)
     }
 
-    #[cfg(feature = "use_glib")]
-    #[inline]
-    pub unsafe fn from_raw_full(ptr: *mut ffi::cairo_font_face_t) -> FontFace {
-        from_glib_full(ptr)
-    }
-
-    #[cfg(not(feature = "use_glib"))]
     #[inline]
     pub unsafe fn from_raw_full(ptr: *mut ffi::cairo_font_face_t) -> FontFace {
         debug_assert!(!ptr.is_null());
         FontFace(ptr::NonNull::new_unchecked(ptr))
     }
 
-    #[cfg(feature = "use_glib")]
-    #[inline]
-    pub unsafe fn from_raw_none(ptr: *mut ffi::cairo_font_face_t) -> FontFace {
-        from_glib_none(ptr)
-    }
-
-    #[cfg(not(feature = "use_glib"))]
     #[inline]
     pub unsafe fn from_raw_none(ptr: *mut ffi::cairo_font_face_t) -> FontFace {
         debug_assert!(!ptr.is_null());
         FontFace(ptr::NonNull::new_unchecked(ptr))
     }
 
-    #[cfg(feature = "use_glib")]
-    #[inline]
-    pub fn to_raw_none(&self) -> *mut ffi::cairo_font_face_t {
-        self.to_glib_none().0
-    }
-
-    #[cfg(not(feature = "use_glib"))]
     #[inline]
     pub fn to_raw_none(&self) -> *mut ffi::cairo_font_face_t {
         self.0.as_ptr()
@@ -202,7 +162,6 @@ impl FontFace {
     }
 }
 
-#[cfg(not(feature = "use_glib"))]
 impl Drop for FontFace {
     #[inline]
     fn drop(&mut self) {
@@ -212,7 +171,6 @@ impl Drop for FontFace {
     }
 }
 
-#[cfg(not(feature = "use_glib"))]
 impl Clone for FontFace {
     #[inline]
     fn clone(&self) -> FontFace {

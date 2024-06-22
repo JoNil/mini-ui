@@ -1,9 +1,4 @@
-#[cfg(feature = "use_glib")]
-use std::marker::PhantomData;
 use std::{ffi::CString, ops::Deref, ptr, slice};
-
-#[cfg(feature = "use_glib")]
-use glib::translate::*;
 use std::ffi::{c_ulong, c_void};
 
 use crate::cairo::{
@@ -288,60 +283,6 @@ impl Surface {
         ffi::cairo_surface_set_user_data,
     }
 }
-
-#[cfg(feature = "use_glib")]
-impl IntoGlibPtr<*mut ffi::cairo_surface_t> for Surface {
-    #[inline]
-    unsafe fn into_glib_ptr(self) -> *mut ffi::cairo_surface_t {
-        std::mem::ManuallyDrop::new(self).to_glib_none().0
-    }
-}
-
-#[cfg(feature = "use_glib")]
-impl<'a> ToGlibPtr<'a, *mut ffi::cairo_surface_t> for Surface {
-    type Storage = PhantomData<&'a Surface>;
-
-    #[inline]
-    fn to_glib_none(&'a self) -> Stash<'a, *mut ffi::cairo_surface_t, Self> {
-        Stash(self.to_raw_none(), PhantomData)
-    }
-
-    #[inline]
-    fn to_glib_full(&self) -> *mut ffi::cairo_surface_t {
-        unsafe { ffi::cairo_surface_reference(self.to_raw_none()) }
-    }
-}
-
-#[cfg(feature = "use_glib")]
-impl FromGlibPtrNone<*mut ffi::cairo_surface_t> for Surface {
-    #[inline]
-    unsafe fn from_glib_none(ptr: *mut ffi::cairo_surface_t) -> Surface {
-        Self::from_raw_none(ptr)
-    }
-}
-
-#[cfg(feature = "use_glib")]
-impl FromGlibPtrBorrow<*mut ffi::cairo_surface_t> for Surface {
-    #[inline]
-    unsafe fn from_glib_borrow(ptr: *mut ffi::cairo_surface_t) -> crate::Borrowed<Surface> {
-        Self::from_raw_borrow(ptr)
-    }
-}
-
-#[cfg(feature = "use_glib")]
-impl FromGlibPtrFull<*mut ffi::cairo_surface_t> for Surface {
-    #[inline]
-    unsafe fn from_glib_full(ptr: *mut ffi::cairo_surface_t) -> Surface {
-        Self::from_raw_full(ptr).unwrap()
-    }
-}
-
-#[cfg(feature = "use_glib")]
-gvalue_impl!(
-    Surface,
-    ffi::cairo_surface_t,
-    ffi::gobject::cairo_gobject_surface_get_type
-);
 
 impl Clone for Surface {
     #[inline]
