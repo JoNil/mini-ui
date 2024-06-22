@@ -1,6 +1,5 @@
-use core::slice;
-
 use cairo::{Context, Format, ImageSurface};
+use core::slice;
 use mini_ui::window::{Key, Window, WindowOptions};
 
 const WIDTH: usize = 640;
