@@ -230,7 +230,10 @@ pub type cairo_user_scaled_font_unicode_to_glyph_func_t = Option<
     ) -> cairo_status_t,
 >;
 
-#[link(name = "cairo")]
+#[cfg_attr(target_os = "linux", link(name = "cairo"))]
+#[cfg_attr(target_os = "windows", link(kind = "static", name = "libcairo"))]
+#[cfg_attr(target_os = "windows", link(kind = "static", name = "libpixman-1"))]
+#[cfg_attr(target_os = "windows", link(name = "Ole32"))]
 extern "C" {
     pub fn cairo_create(target: *mut cairo_surface_t) -> *mut cairo_t;
     pub fn cairo_reference(cr: *mut cairo_t) -> *mut cairo_t;
