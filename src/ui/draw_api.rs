@@ -61,12 +61,11 @@ impl<'a> DrawApi<'a> {
             return;
         }
 
-        self.context.new_path();
         self.context
-            .set_source_rgb(color.x as _, color.y as _, color.z as _);
+            .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
         self.context
             .rectangle(pos.x as _, -pos.y as _, size.x as _, size.y as _);
-        self.context.paint_with_alpha(color.w as _).unwrap();
+        self.context.fill().unwrap();
     }
 
     #[inline]
@@ -78,12 +77,11 @@ impl<'a> DrawApi<'a> {
             return;
         }
 
-        self.context.new_path();
         self.context
-            .set_source_rgb(color.x as _, color.y as _, color.z as _);
+            .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
         self.context
             .rectangle(pos.x as _, -pos.y as _, size.x as _, size.y as _);
-        self.context.paint_with_alpha(color.w as _).unwrap();
+        self.context.fill().unwrap();
     }
 
     #[inline]
@@ -108,11 +106,13 @@ impl<'a> DrawApi<'a> {
             return;
         }
 
-        self.context.new_path();
-        self.context.move_to(pos.x as _, -pos.y as _);
+        self.context.set_font_size(text_height as _);
+        let extent = self.context.text_extents(text).unwrap();
+
+        self.context
+            .move_to(pos.x as _, (-pos.y - extent.y_bearing() as f32) as _);
         self.context
             .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
-        self.context.set_font_size(text_height as _);
         self.context.show_text(text).unwrap();
     }
 
@@ -128,12 +128,11 @@ impl<'a> DrawApi<'a> {
             return;
         }
 
-        self.context.new_path();
         self.context
-            .set_source_rgb(color.x as _, color.y as _, color.z as _);
+            .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
         self.context
             .rectangle(pos.x as _, -pos.y as _, size.x as _, size.y as _);
-        self.context.paint_with_alpha(color.w as _).unwrap();
+        self.context.fill().unwrap();
     }
 
     #[inline]
@@ -153,12 +152,11 @@ impl<'a> DrawApi<'a> {
             return;
         }
 
-        self.context.new_path();
         self.context
-            .set_source_rgb(color.x as _, color.y as _, color.z as _);
+            .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
         self.context
             .rectangle(pos.x as _, -pos.y as _, size.x as _, size.y as _);
-        self.context.paint_with_alpha(color.w as _).unwrap();
+        self.context.fill().unwrap();
     }
 
     #[inline]
