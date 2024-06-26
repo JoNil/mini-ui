@@ -53,33 +53,37 @@ impl<'a> DrawApi<'a> {
     pub fn circle(&self, pos: Vec2, radius: f32, width: f32, color: Vec4, circle_segments: i32) {}
 
     #[inline]
-    pub fn square(&self, pos: Vec2, size: Vec2, width: f32, color: Vec4) {
-        self.context.move_to(pos.x as _, pos.y as _);
-        self.context
-            .set_source_rgb(color.x as _, color.y as _, color.z as _);
-        self.context
-            .rectangle(pos.x as _, pos.y as _, width as _, width as _);
-        self.context.paint().unwrap();
-    }
-
-    #[inline]
     pub fn rectangle(&self, pos: Vec2, size: Vec2, color: Vec4) {
-        self.context.move_to(pos.x as _, pos.y as _);
+        assert!(!pos.x.is_nan());
+        assert!(!pos.y.is_nan());
+
+        if self.pass == 0 {
+            return;
+        }
+
+        self.context.new_path();
         self.context
             .set_source_rgb(color.x as _, color.y as _, color.z as _);
         self.context
-            .rectangle(pos.x as _, pos.y as _, size.x as _, size.y as _);
-        self.context.paint().unwrap();
+            .rectangle(pos.x as _, -pos.y as _, size.x as _, size.y as _);
+        self.context.paint_with_alpha(color.w as _).unwrap();
     }
 
     #[inline]
     pub fn rectangle_rounded(&self, pos: Vec2, size: Vec2, rounding: f32, color: Vec4) {
-        self.context.move_to(pos.x as _, pos.y as _);
+        assert!(!pos.x.is_nan());
+        assert!(!pos.y.is_nan());
+
+        if self.pass == 0 {
+            return;
+        }
+
+        self.context.new_path();
         self.context
             .set_source_rgb(color.x as _, color.y as _, color.z as _);
         self.context
-            .rectangle(pos.x as _, pos.y as _, size.x as _, size.y as _);
-        self.context.paint().unwrap();
+            .rectangle(pos.x as _, -pos.y as _, size.x as _, size.y as _);
+        self.context.paint_with_alpha(color.w as _).unwrap();
     }
 
     #[inline]
@@ -97,7 +101,15 @@ impl<'a> DrawApi<'a> {
         color: Vec4,
         font: Font,
     ) {
-        self.context.move_to(pos.x as _, pos.y as _);
+        assert!(!pos.x.is_nan());
+        assert!(!pos.y.is_nan());
+
+        if self.pass == 0 {
+            return;
+        }
+
+        self.context.new_path();
+        self.context.move_to(pos.x as _, -pos.y as _);
         self.context
             .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
         self.context.set_font_size(text_height as _);
@@ -109,12 +121,19 @@ impl<'a> DrawApi<'a> {
 
     #[inline]
     pub fn rectangle_border(&self, pos: Vec2, size: Vec2, thickness: f32, color: Vec4) {
-        self.context.move_to(pos.x as _, pos.y as _);
+        assert!(!pos.x.is_nan());
+        assert!(!pos.y.is_nan());
+
+        if self.pass == 0 {
+            return;
+        }
+
+        self.context.new_path();
         self.context
-            .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
+            .set_source_rgb(color.x as _, color.y as _, color.z as _);
         self.context
-            .rectangle(pos.x as _, pos.y as _, size.x as _, size.y as _);
-        self.context.paint().unwrap();
+            .rectangle(pos.x as _, -pos.y as _, size.x as _, size.y as _);
+        self.context.paint_with_alpha(color.w as _).unwrap();
     }
 
     #[inline]
@@ -127,12 +146,19 @@ impl<'a> DrawApi<'a> {
         inner_corner_segments: i32,
         color: Vec4,
     ) {
-        self.context.move_to(pos.x as _, pos.y as _);
+        assert!(!pos.x.is_nan());
+        assert!(!pos.y.is_nan());
+
+        if self.pass == 0 {
+            return;
+        }
+
+        self.context.new_path();
         self.context
             .set_source_rgb(color.x as _, color.y as _, color.z as _);
         self.context
-            .rectangle(pos.x as _, pos.y as _, size.x as _, size.y as _);
-        self.context.paint().unwrap();
+            .rectangle(pos.x as _, -pos.y as _, size.x as _, size.y as _);
+        self.context.paint_with_alpha(color.w as _).unwrap();
     }
 
     #[inline]

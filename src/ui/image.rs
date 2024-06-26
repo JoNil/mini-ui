@@ -9,8 +9,8 @@ impl Image {
     pub fn load_png(data: &[u8]) -> Image {
         Image {
             id: 0,
-            width: 0,
-            height: 0,
+            width: 64,
+            height: 64,
         }
     }
 

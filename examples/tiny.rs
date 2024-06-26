@@ -99,7 +99,8 @@ impl Styles {
         let base = Style::default()
             .border_color(GRAY)
             .frame_color(GRAY)
-            .frame_style(FrameStyle::RoundedRectangle(10.0));
+            .frame_style(FrameStyle::RoundedRectangle(10.0))
+            .debug(false);
 
         Styles {
             background: base
@@ -302,7 +303,7 @@ impl State {
         ];
 
         Oui::new(&mut self.ctx)
-            .style(self.style.background)
+            .style(self.style.background.align(Align::Center))
             .fill(true)
             .show(window, context, size, |ui: &mut Ui| {
                 ui.frame(self.style.top_frame, |ui| {
