@@ -100,7 +100,7 @@ impl Styles {
             .border_color(GRAY)
             .frame_color(GRAY)
             .frame_style(FrameStyle::RoundedRectangle(10.0))
-            .debug(true);
+            .debug(false);
 
         Styles {
             background: base
@@ -308,7 +308,7 @@ impl State {
             .show(window, context, size, |ui: &mut Ui| {
                 ui.frame(self.style.top_frame, |ui| {
                     ui.with_style(self.style.search_button, |ui| {
-                        self.search.show(vec2(376.0, 44.0), context, ui);
+                        self.search.show(vec2(376.0, 44.0), window, context, ui);
                     });
 
                     ui.horizontal_spring();

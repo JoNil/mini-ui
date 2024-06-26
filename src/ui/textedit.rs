@@ -5,7 +5,7 @@ use crate::{
         color::{held_color, hover_color},
         frame, Ui,
     },
-    window::Key,
+    window::{Key, MouseButton, Window},
 };
 use std::{ffi::CString, mem, time::Instant};
 
@@ -420,7 +420,7 @@ impl TextEdit {
         }
     }
 
-    pub fn show(&mut self, size: Vec2, context: &Context, ui: &mut Ui) {
+    pub fn show(&mut self, size: Vec2, window: &Window, context: &Context, ui: &mut Ui) {
         let response = ui.response();
         let style = ui.style;
 
@@ -443,7 +443,7 @@ impl TextEdit {
             }
         };
 
-        let pressed = false; // TODO
+        let pressed = window.get_mouse_down(MouseButton::Left);
 
         if response.double_clicked && self.active {
             self.select_start = 0;

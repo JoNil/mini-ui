@@ -1,7 +1,7 @@
 use crate::{
     cairo::Context,
     math::{vec2, vec4, Vec2},
-    window::{MouseMode, Window},
+    window::{MouseButton, MouseMode, Window},
 };
 use bounding_box::BoundingBox;
 use draw_api::DrawApi;
@@ -116,21 +116,23 @@ impl<'ctx> Oui<'ctx> {
     pub fn show(
         self,
         window: &Window,
-        surface_context: &Context,
+        context: &Context,
         screen_size: Vec2,
         func: impl FnOnce(&mut Ui),
     ) {
         let ctx_key = &func as *const _ as usize;
         let state = self.ctx.state.entry(ctx_key).or_default();
 
-        let mut draw = DrawApi::new(surface_context);
+        let mut draw = DrawApi::new(context);
 
-        let mouse_pos = Vec2::from(window.get_mouse_pos(MouseMode::Pass).unwrap_or_default());
+        let mouse_pos = window.get_mouse_pos(MouseMode::Pass).unwrap_or_default();
+        let mouse_pos = vec2(mouse_pos.0, -mouse_pos.1);
 
         let responses = {
             let mut found_first = false;
-            let pressed = false; // TODO
-            let released = false; // TODO
+            let left_down = window.get_mouse_down(MouseButton::Left);
+            let pressed = left_down && !state.mouse_pressed;
+            let released = !left_down && state.mouse_pressed;
 
             let double_clicked = !state.mouse_pressed
                 && pressed
