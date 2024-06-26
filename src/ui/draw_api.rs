@@ -132,7 +132,8 @@ impl<'a> DrawApi<'a> {
             .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
         self.context
             .rectangle(pos.x as _, -pos.y as _, size.x as _, size.y as _);
-        self.context.fill().unwrap();
+        self.context.set_line_width(thickness as _);
+        self.context.stroke().unwrap();
     }
 
     #[inline]
@@ -156,7 +157,8 @@ impl<'a> DrawApi<'a> {
             .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
         self.context
             .rectangle(pos.x as _, -pos.y as _, size.x as _, size.y as _);
-        self.context.fill().unwrap();
+        self.context.set_line_width(thickness as _);
+        self.context.stroke().unwrap();
     }
 
     #[inline]
