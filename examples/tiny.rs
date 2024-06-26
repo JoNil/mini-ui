@@ -8,8 +8,8 @@ use mini_ui::{
 };
 use std::{f32::consts::TAU, slice};
 
-const WIDTH: usize = 640;
-const HEIGHT: usize = 360;
+const WIDTH: usize = 1900;
+const HEIGHT: usize = 1000;
 
 fn main() {
     let mut window = Window::new(
@@ -25,27 +25,20 @@ fn main() {
     let mut surface = ImageSurface::create(Format::ARgb32, WIDTH as _, HEIGHT as _)
         .expect("Can't create surface");
 
-    {
-        let context = Context::new(&surface).unwrap();
-
-        context.set_source_rgb(1.0, 1.0, 1.0);
-        context.paint().unwrap();
-
-        context.select_font_face(
-            "Helvetica",
-            cairo::FontSlant::Normal,
-            cairo::FontWeight::Normal,
-        );
-        context.set_font_size(40.0);
-        context.set_source_rgb(0.0, 0.0, 0.0);
-        context.move_to(50.0, 100.0);
-        context.show_text("Hello, Cairo!").unwrap();
-    }
-
     window.set_target_fps(60);
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
-        state.update();
+        {
+            let context = Context::new(&surface).unwrap();
+
+            context.select_font_face(
+                "Helvetica",
+                cairo::FontSlant::Normal,
+                cairo::FontWeight::Normal,
+            );
+
+            state.update(&window, &context, vec2(WIDTH as f32, HEIGHT as f32));
+        }
 
         let data = surface.data().unwrap();
         window
@@ -87,7 +80,6 @@ struct Robot {
 }
 
 struct Styles {
-    base: Style,
     background: Style,
     back_frame: Style,
     frame: Style,
@@ -110,7 +102,6 @@ impl Styles {
             .frame_style(FrameStyle::RoundedRectangle(10.0));
 
         Styles {
-            base,
             background: base
                 .frame_color(vec4(91.4 / 100.0, 94.5 / 100.0, 95.3 / 100.0, 1.0))
                 .frame_style(FrameStyle::Rectangle),
@@ -182,7 +173,6 @@ struct State {
     ctx: OuiContext,
 
     style: Styles,
-    debug_all: bool,
 
     camera: Image,
     compass: Image,
@@ -206,7 +196,6 @@ impl State {
         State {
             ctx: OuiContext::new(),
             style: Styles::new(),
-            debug_all: false,
             camera: Image::load_png(include_bytes!("assets/camera.png")),
             compass: Image::load_png(include_bytes!("assets/compass.png")),
             person: Image::load_png(include_bytes!("assets/person.png")),
@@ -223,7 +212,7 @@ impl State {
         }
     }
 
-    fn update(&mut self) {
+    fn update(&mut self, window: &Window, context: &Context, size: Vec2) {
         let robots = vec![
             Robot {
                 name: "Pusher".into(),
@@ -315,10 +304,10 @@ impl State {
         Oui::new(&mut self.ctx)
             .style(self.style.background)
             .fill(true)
-            .show(|ui: &mut Ui| {
+            .show(window, context, size, |ui: &mut Ui| {
                 ui.frame(self.style.top_frame, |ui| {
                     ui.with_style(self.style.search_button, |ui| {
-                        self.search.show(vec2(376.0, 44.0), ui);
+                        self.search.show(vec2(376.0, 44.0), context, ui);
                     });
 
                     ui.horizontal_spring();

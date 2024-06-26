@@ -1,20 +1,23 @@
 use crate::{
-    math::{Vec2, Vec4},
+    cairo::Context,
+    math::{vec2, Vec2, Vec4},
     ui::{bounding_box::BoundingBox, id::Id, Font, Image},
 };
 
 use super::Align;
 
-pub struct DrawApi {
+pub struct DrawApi<'a> {
+    context: &'a Context,
     pub(crate) boxes: Vec<(Id, BoundingBox)>,
     pub pass: i32,
     pub scale: f32,
     tint: Vec4,
 }
 
-impl DrawApi {
-    pub fn new() -> DrawApi {
+impl<'a> DrawApi<'a> {
+    pub fn new(context: &'a Context) -> DrawApi {
         DrawApi {
+            context,
             boxes: Vec::new(),
             pass: 1,
             scale: 1.0,
@@ -24,7 +27,9 @@ impl DrawApi {
 
     #[inline]
     pub fn calc_text_size(&self, text: &str, text_height: f32, max_width: f32, font: Font) -> Vec2 {
-        todo!()
+        self.context.set_font_size(text_height as _);
+        let extent = self.context.text_extents(text).unwrap();
+        vec2(extent.width() as _, extent.height() as _)
     }
 
     #[inline]
@@ -48,13 +53,28 @@ impl DrawApi {
     pub fn circle(&self, pos: Vec2, radius: f32, width: f32, color: Vec4, circle_segments: i32) {}
 
     #[inline]
-    pub fn square(&self, pos: Vec2, size: Vec2, width: f32, color: Vec4) {}
+    pub fn square(&self, pos: Vec2, size: Vec2, width: f32, color: Vec4) {
+        self.context
+            .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
+        self.context
+            .rectangle(pos.x as _, pos.y as _, width as _, width as _);
+    }
 
     #[inline]
-    pub fn rectangle(&self, pos: Vec2, size: Vec2, color: Vec4) {}
+    pub fn rectangle(&self, pos: Vec2, size: Vec2, color: Vec4) {
+        self.context
+            .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
+        self.context
+            .rectangle(pos.x as _, pos.y as _, size.x as _, size.y as _);
+    }
 
     #[inline]
-    pub fn rectangle_rounded(&self, pos: Vec2, size: Vec2, rounding: f32, color: Vec4) {}
+    pub fn rectangle_rounded(&self, pos: Vec2, size: Vec2, rounding: f32, color: Vec4) {
+        self.context
+            .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
+        self.context
+            .rectangle(pos.x as _, pos.y as _, size.x as _, size.y as _);
+    }
 
     #[inline]
     pub fn image(&self, pos: Vec2, size: Vec2, image: Image) {}
@@ -71,6 +91,11 @@ impl DrawApi {
         color: Vec4,
         font: Font,
     ) {
+        self.context.move_to(pos.x as _, pos.y as _);
+        self.context
+            .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
+        self.context.set_font_size(text_height as _);
+        self.context.show_text(text).unwrap();
     }
 
     #[inline]

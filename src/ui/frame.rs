@@ -28,7 +28,6 @@ pub(crate) fn show(
     let current_id = ui.current_id();
 
     let mut child_ui = Ui {
-        resources: ui.resources,
         draw: ui.draw,
         responses: ui.responses,
         style,

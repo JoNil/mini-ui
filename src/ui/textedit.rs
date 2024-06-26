@@ -1,4 +1,5 @@
 use crate::{
+    cairo::Context,
     math::{vec2, vec4, Vec2},
     ui::{
         color::{held_color, hover_color},
@@ -419,7 +420,7 @@ impl TextEdit {
         }
     }
 
-    pub fn show(&mut self, size: Vec2, ui: &mut Ui) {
+    pub fn show(&mut self, size: Vec2, context: &Context, ui: &mut Ui) {
         let response = ui.response();
         let style = ui.style;
 
@@ -436,7 +437,9 @@ impl TextEdit {
             let font_id = style.font.unwrap_or_default().id;
 
             move |s: &str| {
-                10.0 // TODO
+                context.set_font_size(text_height as _);
+                let extent = context.text_extents(s).unwrap();
+                extent.width() as f32
             }
         };
 

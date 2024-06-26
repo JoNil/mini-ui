@@ -1,4 +1,8 @@
-use crate::math::{vec2, vec4, Vec2};
+use crate::{
+    cairo::Context,
+    math::{vec2, vec4, Vec2},
+    window::{MouseMode, Window},
+};
 use bounding_box::BoundingBox;
 use draw_api::DrawApi;
 use id::Id;
@@ -46,10 +50,7 @@ pub enum VertAlign {
     Center,
 }
 
-pub struct OuiResources {}
-
 pub struct OuiContext {
-    resources: OuiResources,
     state: HashMap<usize, OuiState>,
     _marker: PhantomData<*const ()>,
 }
@@ -57,7 +58,6 @@ pub struct OuiContext {
 impl OuiContext {
     pub fn new() -> OuiContext {
         OuiContext {
-            resources: OuiResources {},
             state: HashMap::new(),
             _marker: PhantomData,
         }
@@ -113,14 +113,19 @@ impl<'ctx> Oui<'ctx> {
         self
     }
 
-    pub fn show(self, func: impl FnOnce(&mut Ui)) {
+    pub fn show(
+        self,
+        window: &Window,
+        surface_context: &Context,
+        screen_size: Vec2,
+        func: impl FnOnce(&mut Ui),
+    ) {
         let ctx_key = &func as *const _ as usize;
         let state = self.ctx.state.entry(ctx_key).or_default();
 
-        let mut draw = DrawApi::new();
+        let mut draw = DrawApi::new(surface_context);
 
-        let screen_size = vec2(640.0, 480.0); // TODO
-        let mouse_pos = Vec2::ZERO; // TODO
+        let mouse_pos = Vec2::from(window.get_mouse_pos(MouseMode::Pass).unwrap_or_default());
 
         let responses = {
             let mut found_first = false;
@@ -186,7 +191,6 @@ impl<'ctx> Oui<'ctx> {
         let style = self.style.align(self.style.align.unwrap_or(Align::Left));
 
         let mut ui = Ui {
-            resources: &mut self.ctx.resources,
             draw: &mut draw,
             responses: &responses,
             style,
@@ -203,17 +207,17 @@ impl<'ctx> Oui<'ctx> {
             let content_box = element.content_box.get();
             let mut extra_x = 0.0;
 
-            if content_box.x < screen_size.x as f32 {
-                extra_x = screen_size.x as f32 - content_box.x;
+            if content_box.x < screen_size.x {
+                extra_x = screen_size.x - content_box.x;
                 element
                     .content_box
-                    .set(vec2(screen_size.x as f32, element.content_box.get().y));
+                    .set(vec2(screen_size.x, element.content_box.get().y));
             }
 
-            if content_box.y < screen_size.y as f32 {
+            if content_box.y < screen_size.y {
                 element
                     .content_box
-                    .set(vec2(element.content_box.get().x, screen_size.y as f32));
+                    .set(vec2(element.content_box.get().x, screen_size.y));
             }
 
             if let Some(update_with_max_width) = &element.update_with_max_width {

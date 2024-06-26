@@ -4,7 +4,7 @@ use crate::ui::{
     draw_api::DrawApi,
     frame,
     id::Id,
-    spacing, Font, Image, OuiResources, Response, Spacing, Style,
+    spacing, Font, Image, Response, Spacing, Style,
 };
 use std::{borrow::Cow, cell::Cell, f32::INFINITY, mem, rc::Rc};
 
@@ -22,9 +22,8 @@ pub(crate) struct Element<'a> {
     pub(crate) update_with_max_width: Option<Box<UpdateWithMaxWidth>>,
 }
 
-pub struct Ui<'a, 'ctx, 'show> {
-    pub(crate) resources: &'ctx OuiResources,
-    pub(crate) draw: &'show mut DrawApi,
+pub struct Ui<'a, 'draw, 'show> {
+    pub(crate) draw: &'show mut DrawApi<'draw>,
     pub(crate) responses: &'show Vec<(Id, Response)>,
     pub(crate) style: Style,
     pub(crate) current_line: Vec<Element<'a>>,
@@ -32,7 +31,7 @@ pub struct Ui<'a, 'ctx, 'show> {
     pub(crate) parent_id: Id,
 }
 
-impl<'a, 'ctx, 'show> Ui<'a, 'ctx, 'show> {
+impl<'a, 'draw, 'show> Ui<'a, 'draw, 'show> {
     pub fn style(&self) -> Style {
         self.style
     }
