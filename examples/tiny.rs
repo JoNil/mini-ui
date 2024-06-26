@@ -6,6 +6,7 @@ use mini_ui::{
     },
     window::{Key, Window, WindowOptions},
 };
+use std::time::Instant;
 use std::{f32::consts::TAU, slice};
 
 const WIDTH: usize = 1900;
@@ -28,6 +29,8 @@ fn main() {
     window.set_target_fps(60);
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
+        let time = Instant::now();
+
         {
             let context = Context::new(&surface).unwrap();
 
@@ -39,6 +42,8 @@ fn main() {
 
             state.update(&window, &context, vec2(WIDTH as f32, HEIGHT as f32));
         }
+
+        println!("{:.2}", time.elapsed().as_secs_f64() * 1000.0);
 
         let data = surface.data().unwrap();
         window
