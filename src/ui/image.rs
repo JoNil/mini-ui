@@ -6,6 +6,14 @@ pub struct Image {
 }
 
 impl Image {
+    pub fn load_png(data: &[u8]) -> Image {
+        Image {
+            id: 0,
+            width: 0,
+            height: 0,
+        }
+    }
+
     pub fn load(width: i32, height: i32, data: &[u8]) -> Image {
         Image {
             id: 0,
