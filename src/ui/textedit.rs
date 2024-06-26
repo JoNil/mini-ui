@@ -6,11 +6,7 @@ use crate::{
     },
     window::Key,
 };
-
-use std::{
-    mem,
-    time::{SystemTime, UNIX_EPOCH},
-};
+use std::{ffi::CString, mem, time::Instant};
 
 use super::Align;
 
@@ -52,6 +48,43 @@ const TEXTEDIT_K_SHIFT_WORDLEFT: i32 = TEXTEDIT_K_WORDLEFT | TEXTEDIT_K_SHIFT;
 const TEXTEDIT_K_SHIFT_WORDRIGHT: i32 = TEXTEDIT_K_WORDRIGHT | TEXTEDIT_K_SHIFT;
 const TEXTEDIT_K_SHIFT_PGUP: i32 = TEXTEDIT_K_PGUP | TEXTEDIT_K_SHIFT;
 const TEXTEDIT_K_SHIFT_PGDOWN: i32 = TEXTEDIT_K_PGDOWN | TEXTEDIT_K_SHIFT;
+
+const KEYS_TO_PASS: &[i32] = &[
+    TEXTEDIT_K_LEFT,
+    TEXTEDIT_K_RIGHT,
+    TEXTEDIT_K_UP,
+    TEXTEDIT_K_DOWN,
+    TEXTEDIT_K_LINESTART,
+    TEXTEDIT_K_LINEEND,
+    TEXTEDIT_K_TEXTSTART,
+    TEXTEDIT_K_TEXTEND,
+    TEXTEDIT_K_DELETE,
+    TEXTEDIT_K_BACKSPACE,
+    TEXTEDIT_K_UNDO,
+    TEXTEDIT_K_REDO,
+    TEXTEDIT_K_INSERT,
+    TEXTEDIT_K_WORDLEFT,
+    TEXTEDIT_K_WORDRIGHT,
+    TEXTEDIT_K_PGUP,
+    TEXTEDIT_K_PGDOWN,
+    TEXTEDIT_K_SHIFT_LEFT,
+    TEXTEDIT_K_SHIFT_RIGHT,
+    TEXTEDIT_K_SHIFT_UP,
+    TEXTEDIT_K_SHIFT_DOWN,
+    TEXTEDIT_K_SHIFT_LINESTART,
+    TEXTEDIT_K_SHIFT_LINEEND,
+    TEXTEDIT_K_SHIFT_TEXTSTART,
+    TEXTEDIT_K_SHIFT_TEXTEND,
+    TEXTEDIT_K_SHIFT_DELETE,
+    TEXTEDIT_K_SHIFT_BACKSPACE,
+    TEXTEDIT_K_SHIFT_UNDO,
+    TEXTEDIT_K_SHIFT_REDO,
+    TEXTEDIT_K_SHIFT_INSERT,
+    TEXTEDIT_K_SHIFT_WORDLEFT,
+    TEXTEDIT_K_SHIFT_WORDRIGHT,
+    TEXTEDIT_K_SHIFT_PGUP,
+    TEXTEDIT_K_SHIFT_PGDOWN,
+];
 
 #[derive(Copy, Clone, Default)]
 struct UndoRecord {
@@ -177,15 +210,13 @@ struct TexteditRow {
 }
 
 impl TexteditRow {
-    fn layout(&mut self, str: &mut TextEdit, start_i: i32) {
-        let remaining_chars = str.string.len() as i32 - start_i;
-        self.num_chars = if remaining_chars > 20 {
-            20
-        } else {
-            remaining_chars
-        };
+    fn layout(&mut self, calc_text_width: &impl Fn(&str) -> f32, str: &mut TextEdit, start_i: i32) {
+        let width = calc_text_width(&str.string);
+        let remaining_chars = str.string.chars().count() as i32 - start_i;
+
+        self.num_chars = remaining_chars;
         self.x0 = 0.0;
-        self.x1 = 20.0;
+        self.x1 = width;
         self.baseline_y_delta = 1.25;
         self.ymin = -1.0;
         self.ymax = 0.0;
@@ -203,7 +234,13 @@ struct FindState {
 }
 
 impl FindState {
-    fn find_charpos(&mut self, str: &mut TextEdit, n: i32, single_line: bool) {
+    fn find_charpos(
+        &mut self,
+        calc_text_width: &impl Fn(&str) -> f32,
+        str: &mut TextEdit,
+        n: i32,
+        single_line: bool,
+    ) {
         let mut r = TexteditRow::default();
         let mut prev_start = 0;
         let z = string_len(&str.string);
@@ -211,7 +248,7 @@ impl FindState {
 
         if n == z {
             if single_line {
-                r.layout(str, 0);
+                r.layout(calc_text_width, str, 0);
                 self.y = 0.0;
                 self.first_char = 0;
                 self.length = z;
@@ -222,7 +259,7 @@ impl FindState {
                 self.x = 0.0;
                 self.height = 1.0;
                 while i < z {
-                    r.layout(str, i);
+                    r.layout(calc_text_width, str, i);
                     prev_start = i;
                     i += r.num_chars;
                 }
@@ -235,7 +272,7 @@ impl FindState {
 
         self.y = 0.0;
         loop {
-            r.layout(str, i);
+            r.layout(calc_text_width, str, i);
             if n < i + r.num_chars {
                 break;
             }
@@ -253,7 +290,7 @@ impl FindState {
         i = 0;
 
         while first + i < n {
-            self.x += string_width(str, first, i);
+            self.x += string_width(calc_text_width, str, first, i);
             i += 1;
         }
     }
@@ -266,8 +303,7 @@ fn delete_chars(string: &mut String, pos: i32, num: i32) {
     let start_byte_pos = string
         .char_indices()
         .nth(char_pos)
-        .map(|(idx, _)| idx)
-        .unwrap();
+        .map_or(string.len(), |(idx, _)| idx);
 
     let end_byte_pos = string
         .char_indices()
@@ -291,12 +327,34 @@ fn string_len(string: &str) -> i32 {
     string.chars().count() as _
 }
 
-fn string_width(_str: &mut TextEdit, _line_start_idx: i32, _char_idx: i32) -> f32 {
-    1.0
+fn string_width(
+    calc_text_width: impl Fn(&str) -> f32,
+    str: &mut TextEdit,
+    _line_start_idx: i32,
+    char_idx: i32,
+) -> f32 {
+    let begin = str
+        .string
+        .char_indices()
+        .nth(char_idx as usize)
+        .map(|(i, _)| i)
+        .unwrap_or(str.string.len());
+
+    let end = str
+        .string
+        .char_indices()
+        .nth(char_idx as usize + 1)
+        .map(|(i, _)| i)
+        .unwrap_or(str.string.len());
+
+    let s = &str.string[begin..end];
+
+    calc_text_width(s)
 }
 
 fn key_to_text(key: i32) -> Option<char> {
-    char::from_u32(key as u32)
+    let key = key as u32 & !(TEXTEDIT_K_SHIFT as u32) & !(TEXTEDIT_K_CONTROL as u32);
+    char::from_u32(key)
 }
 
 fn get_char(string: &str, pos: i32) -> char {
@@ -310,13 +368,16 @@ fn is_space(c: char) -> bool {
 #[derive(Clone)]
 pub struct TextEdit {
     pub string: String,
+    limit: i32,
     active: bool,
+    no_drag: bool,
+    blink_timer: Instant,
+
     cursor: i32,
     select_start: i32,
     select_end: i32,
     insert_mode: bool,
     row_count_per_page: i32,
-    cursor_at_end_of_line: bool,
     has_preferred_x: bool,
     single_line: bool,
     preferred_x: f32,
@@ -324,19 +385,21 @@ pub struct TextEdit {
 }
 
 impl TextEdit {
-    pub fn new(string: impl Into<String>) -> TextEdit {
+    pub fn new(string: impl Into<String>, limit: i32) -> TextEdit {
         let string = string.into();
         let start_width = string_len(&string);
 
         TextEdit {
             string,
+            limit,
             active: false,
+            no_drag: false,
+            blink_timer: Instant::now(),
+            cursor: start_width,
             select_start: 0,
             select_end: start_width,
-            cursor: start_width,
             has_preferred_x: false,
             preferred_x: 0.0,
-            cursor_at_end_of_line: false,
             single_line: true,
             insert_mode: false,
             row_count_per_page: 0,
@@ -360,68 +423,184 @@ impl TextEdit {
         let response = ui.response();
         let style = ui.style;
 
-        let style = if response.held {
+        let style = if response.held && !self.active {
             style.frame_color(held_color(style.frame_color))
-        } else if response.hovered {
+        } else if response.hovered && !self.active {
             style.frame_color(hover_color(style.frame_color))
         } else {
             style
         };
 
-        /*let pressed = api.mouse_pressed_since_last_swap();
+        let calc_text_width = {
+            let text_height = style.text_height;
+            let font_id = style.font.unwrap_or_default().id;
 
-        if response.pressed {
+            move |s: &str| {
+                10.0 // TODO
+            }
+        };
+
+        let pressed = false; // TODO
+
+        if response.double_clicked && self.active {
+            self.select_start = 0;
+            self.select_end = string_len(&self.string);
+            self.no_drag = true;
+        } else if response.pressed && self.active {
+            self.click(
+                &calc_text_width,
+                response.relative_mouse_pos.x - style.padding.left - style.margin.left,
+                response.relative_mouse_pos.y,
+            );
+        } else if response.held && self.active && !self.no_drag {
+            self.drag(
+                &calc_text_width,
+                response.relative_mouse_pos.x - style.padding.left - style.margin.left,
+                response.relative_mouse_pos.y,
+            );
+        } else if response.released {
             self.active = true;
+            self.no_drag = false;
         } else if pressed {
             self.active = false;
-        }*/
+        }
 
         if self.active {
-            //self.key(key);
+            /* TODO
+            for event in api.window_events() {
+                match event {
+                    WindowEvent::KeyEvent(k) => {
+                        if k.actions as u32 == PLUGIN_KEY_ACTION_PRESS
+                            || k.actions as u32 == PLUGIN_KEY_ACTION_REPEAT
+                        {
+                            let key = k.key
+                                | (k.mods as u32 & PLUGIN_MOD_SHIFT > 0)
+                                    .then_some(TEXTEDIT_K_SHIFT)
+                                    .unwrap_or_default()
+                                | (k.mods as u32 & PLUGIN_MOD_CONTROL > 0)
+                                    .then_some(TEXTEDIT_K_CONTROL)
+                                    .unwrap_or_default();
+
+                            if KEYS_TO_PASS.contains(&key) {
+                                self.key(&calc_text_width, key);
+
+                                if string_len(&self.string) > self.limit {
+                                    self.undo()
+                                }
+
+                                self.blink_timer = Instant::now();
+                            }
+
+                            match (k.key as u32, k.mods as u32) {
+                                (PLUGIN_KEY_C | PLUGIN_KEY_X, PLUGIN_MOD_CONTROL) => {
+                                    if self.select_start != self.select_end {
+                                        if let Ok(mut ctx) = ClipboardContext::new() {
+                                            let start_char_idx =
+                                                self.select_start.min(self.select_end);
+                                            let end_char_idx =
+                                                self.select_start.max(self.select_end);
+
+                                            let start_byte_idx = self
+                                                .string
+                                                .char_indices()
+                                                .nth(start_char_idx as _)
+                                                .map(|(i, _)| i)
+                                                .unwrap_or(0);
+                                            let end_byte_idx = self
+                                                .string
+                                                .char_indices()
+                                                .nth(end_char_idx as _)
+                                                .map(|(i, _)| i)
+                                                .unwrap_or(self.string.len());
+
+                                            let selected =
+                                                &self.string[start_byte_idx..end_byte_idx];
+
+                                            ctx.set_contents(selected.to_owned()).ok();
+                                        }
+
+                                        if k.key as u32 == PLUGIN_KEY_X {
+                                            self.cut();
+                                        }
+                                    }
+                                }
+                                (PLUGIN_KEY_V, PLUGIN_MOD_CONTROL) => {
+                                    if let Ok(mut ctx) = ClipboardContext::new() {
+                                        if let Ok(content) = ctx.get_contents() {
+                                            self.paste(&content);
+
+                                            if string_len(&self.string) > self.limit {
+                                                self.undo()
+                                            }
+                                        }
+                                    }
+                                }
+                                _ => (),
+                            }
+                        }
+                    }
+                    WindowEvent::CharEvent(char) => {
+                        self.key(&calc_text_width, char.c as _);
+
+                        if string_len(&self.string) > self.limit {
+                            self.undo()
+                        }
+
+                        self.blink_timer = Instant::now();
+                    }
+                    _ => (),
+                }
+            }*/
         }
 
         let text = self.string.clone(); // TODO(JoNil) Lifetime so we con't have to clone!
         let active = self.active;
         let cursor = self.cursor;
-        let select_start = self.select_start;
-        let select_end = self.select_end;
 
-        let start_char_idx = select_start.min(select_end);
-        let end_char_idx = select_start.max(select_end);
+        let selection = if self.select_start != self.select_end {
+            let start_char_idx = self.select_start.min(self.select_end);
+            let end_char_idx = self.select_start.max(self.select_end);
 
-        let start_byte_idx = text
-            .char_indices()
-            .nth(start_char_idx as _)
-            .map(|(i, _)| i)
-            .unwrap_or(0);
-        let end_byte_idx = text
-            .char_indices()
-            .nth(end_char_idx as _)
-            .map(|(i, _)| i)
-            .unwrap_or(text.len());
+            let start_byte_idx = text
+                .char_indices()
+                .nth(start_char_idx as _)
+                .map(|(i, _)| i)
+                .unwrap_or(0);
+            let end_byte_idx = text
+                .char_indices()
+                .nth(end_char_idx as _)
+                .map(|(i, _)| i)
+                .unwrap_or(text.len());
+
+            let before_selection = &text[..start_byte_idx];
+            let selected = &text[start_byte_idx..end_byte_idx];
+
+            let before_width = ui.draw.calc_text_size(
+                before_selection,
+                style.text_height,
+                10000.0,
+                style.font.unwrap_or_default(),
+            );
+            let selected_width = ui.draw.calc_text_size(
+                selected,
+                style.text_height,
+                10000.0,
+                style.font.unwrap_or_default(),
+            );
+
+            Some((before_width.x, selected_width.x))
+        } else {
+            None
+        };
+
         let cursor_byte_idx = text
             .char_indices()
             .nth(cursor as _)
             .map(|(i, _)| i)
             .unwrap_or(text.len());
 
-        let before_selection = &text[..start_byte_idx];
-        let selected = &text[start_byte_idx..end_byte_idx];
-
         let before_cursor = &text[..cursor_byte_idx];
 
-        let before_width = ui.draw.calc_text_size(
-            before_selection,
-            style.text_height,
-            10000.0,
-            style.font.unwrap_or_default(),
-        );
-        let selected_width = ui.draw.calc_text_size(
-            selected,
-            style.text_height,
-            10000.0,
-            style.font.unwrap_or_default(),
-        );
         let before_cursor_width = ui.draw.calc_text_size(
             before_cursor,
             style.text_height,
@@ -429,8 +608,10 @@ impl TextEdit {
             style.font.unwrap_or_default(),
         );
 
-        frame::show(ui, false, style, None, Some(ui.current_id()), |ui| {
-            ui.canvas(size, move |draw, cursor| {
+        let blink_time = self.blink_timer.elapsed();
+
+        frame::show(ui, false, style, None, Some(ui.current_id()), true, |ui| {
+            ui.canvas(size, move |draw, cursor, size| {
                 draw.text(
                     &text,
                     cursor
@@ -445,14 +626,7 @@ impl TextEdit {
                     style.font.unwrap_or_default(),
                 );
 
-                if active
-                    && SystemTime::now()
-                        .duration_since(UNIX_EPOCH)
-                        .unwrap()
-                        .as_millis()
-                        % 1000
-                        > 500
-                {
+                if active && blink_time.as_millis() % 1000 < 500 {
                     draw.rectangle(
                         cursor
                             + vec2(
@@ -467,30 +641,32 @@ impl TextEdit {
                 }
 
                 if active {
-                    draw.rectangle(
-                        cursor
-                            + vec2(
-                                before_width.x,
-                                -size.y / 2.0
-                                    + style.text_height / 2.0
-                                    + 0.1 * style.text_height / 2.0,
-                            ),
-                        vec2(selected_width.x, style.text_height),
-                        vec4(0.0, 0.0, 1.0, 0.2),
-                    );
+                    if let Some((before_width, selected_width)) = selection {
+                        draw.rectangle(
+                            cursor
+                                + vec2(
+                                    before_width,
+                                    -size.y / 2.0
+                                        + style.text_height / 2.0
+                                        + 0.1 * style.text_height / 2.0,
+                                ),
+                            vec2(selected_width, style.text_height),
+                            vec4(0.0, 0.0, 1.0, 0.2),
+                        );
+                    }
                 }
             });
         });
     }
 
-    fn locate_coord(&mut self, x: f32, y: f32) -> i32 {
+    fn locate_coord(&mut self, calc_text_width: &impl Fn(&str) -> f32, x: f32, y: f32) -> i32 {
         let mut r = TexteditRow::default();
         let n = string_len(&self.string);
         let mut base_y = 0.0;
         let mut i = 0;
 
         while i < n {
-            r.layout(self, i);
+            r.layout(calc_text_width, self, i);
             if r.num_chars <= 0 {
                 return n;
             }
@@ -513,7 +689,7 @@ impl TextEdit {
             let mut prev_x = r.x0;
 
             for k in 0..r.num_chars {
-                let w = string_width(self, i, k);
+                let w = string_width(calc_text_width, self, i, k);
                 if x < prev_x + w {
                     if x < prev_x + w / 2.0 {
                         return k + i;
@@ -532,22 +708,22 @@ impl TextEdit {
         }
     }
 
-    fn click(&mut self, x: f32, mut y: f32) {
+    fn click(&mut self, calc_text_width: &impl Fn(&str) -> f32, x: f32, mut y: f32) {
         if self.single_line {
             let mut r = TexteditRow::default();
-            r.layout(self, 0);
+            r.layout(calc_text_width, self, 0);
             y = r.ymin;
         }
-        self.cursor = self.locate_coord(x, y);
+        self.cursor = self.locate_coord(calc_text_width, x, y);
         self.select_start = self.cursor;
         self.select_end = self.cursor;
         self.has_preferred_x = false;
     }
 
-    fn drag(&mut self, x: f32, mut y: f32) {
+    fn drag(&mut self, calc_text_width: &impl Fn(&str) -> f32, x: f32, mut y: f32) {
         if self.single_line {
             let mut r = TexteditRow::default();
-            r.layout(self, 0);
+            r.layout(calc_text_width, self, 0);
             y = r.ymin;
         }
 
@@ -555,7 +731,7 @@ impl TextEdit {
             self.select_start = self.cursor;
         }
 
-        let p = self.locate_coord(x, y);
+        let p = self.locate_coord(calc_text_width, x, y);
         self.select_end = p;
         self.cursor = p;
     }
@@ -692,7 +868,7 @@ impl TextEdit {
         self.has_preferred_x = false;
     }
 
-    fn key(&mut self, mut key: i32) {
+    fn key(&mut self, calc_text_width: &impl Fn(&str) -> f32, mut key: i32) {
         loop {
             match key {
                 TEXTEDIT_K_INSERT => {
@@ -800,7 +976,7 @@ impl TextEdit {
                             self.move_to_last();
                         }
                         self.clamp();
-                        find.find_charpos(self, self.cursor, self.single_line);
+                        find.find_charpos(calc_text_width, self, self.cursor, self.single_line);
 
                         for _ in 0..row_count {
                             let goal_x = if self.has_preferred_x {
@@ -813,10 +989,10 @@ impl TextEdit {
                                 break;
                             }
                             self.cursor = start;
-                            row.layout(self, self.cursor);
+                            row.layout(calc_text_width, self, self.cursor);
                             let mut x = row.x0;
                             for i in 0..row.num_chars {
-                                let dx = string_width(self, start, i);
+                                let dx = string_width(calc_text_width, self, start, i);
                                 x += dx;
                                 if x > goal_x {
                                     break;
@@ -850,7 +1026,7 @@ impl TextEdit {
                             self.move_to_first();
                         }
                         self.clamp();
-                        find.find_charpos(self, self.cursor, self.single_line);
+                        find.find_charpos(calc_text_width, self, self.cursor, self.single_line);
 
                         for _ in 0..row_count {
                             let goal_x = if self.has_preferred_x {
@@ -862,10 +1038,10 @@ impl TextEdit {
                                 break;
                             }
                             self.cursor = find.prev_first;
-                            row.layout(self, self.cursor);
+                            row.layout(calc_text_width, self, self.cursor);
                             let mut x = row.x0;
                             for i in 0..row.num_chars {
-                                let dx = string_width(self, find.prev_first, i);
+                                let dx = string_width(calc_text_width, self, find.prev_first, i);
                                 x += dx;
                                 if x > goal_x {
                                     break;
@@ -1027,6 +1203,7 @@ impl TextEdit {
                             }
                         }
                     }
+                    break;
                 }
             }
         }
@@ -1068,10 +1245,10 @@ impl TextEdit {
         }
 
         if u.insert_length != 0 {
-            for i in 0..u.insert_length {
-                let mut buf = [4; 0];
+            for i in (0..u.insert_length).rev() {
+                let mut buf = [0; 4];
                 let ch = s.undo_char[(u.char_storage + i) as usize];
-                let s = &*ch.encode_utf8(&mut buf);
+                let s = ch.encode_utf8(&mut buf);
 
                 insert_chars(&mut self.string, u.where_0, s);
             }
@@ -1114,8 +1291,8 @@ impl TextEdit {
         }
 
         if r.insert_length != 0 {
-            for i in 0..u.insert_length {
-                let mut buf = [4; 0];
+            for i in (0..r.insert_length).rev() {
+                let mut buf = [0; 4];
                 let ch = s.undo_char[(r.char_storage + i) as usize];
                 let s = &*ch.encode_utf8(&mut buf);
 

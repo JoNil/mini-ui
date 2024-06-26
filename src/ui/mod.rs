@@ -1,3 +1,4 @@
+use crate::math::{vec2, vec4, Vec2};
 use bounding_box::BoundingBox;
 use draw_api::DrawApi;
 use id::Id;
@@ -30,8 +31,6 @@ pub use spacing::Spacing;
 pub use style::Style;
 pub use textedit::TextEdit;
 pub use ui::Ui;
-
-use crate::math::{vec2, vec4, Vec2};
 
 #[derive(Clone, Copy, Debug)]
 pub enum Align {
@@ -68,6 +67,7 @@ impl OuiContext {
 struct OuiState {
     bounding_boxes: Vec<(Id, BoundingBox)>,
     mouse_pressed: bool,
+    mouse_pressed_pos: Vec2,
     mouse_pressed_id: Id,
     mouse_released_time: Instant,
 }
@@ -77,6 +77,7 @@ impl Default for OuiState {
         OuiState {
             bounding_boxes: Vec::new(),
             mouse_pressed: false,
+            mouse_pressed_pos: Vec2::ZERO,
             mouse_pressed_id: Id::none(),
             mouse_released_time: Instant::now() - Duration::from_millis(1000),
         }
@@ -87,6 +88,7 @@ impl Default for OuiState {
 pub struct Oui<'ctx> {
     ctx: &'ctx mut OuiContext,
     style: Style,
+    fill: bool,
 }
 
 impl<'ctx> Oui<'ctx> {
@@ -95,6 +97,7 @@ impl<'ctx> Oui<'ctx> {
         Oui {
             ctx,
             style: Style::default(),
+            fill: true,
         }
     }
 
@@ -104,23 +107,33 @@ impl<'ctx> Oui<'ctx> {
         self
     }
 
+    #[inline]
+    pub fn fill(mut self, fill: bool) -> Oui<'ctx> {
+        self.fill = fill;
+        self
+    }
+
     pub fn show(self, func: impl FnOnce(&mut Ui)) {
         let ctx_key = &func as *const _ as usize;
         let state = self.ctx.state.entry(ctx_key).or_default();
 
         let mut draw = DrawApi::new();
-        let mouse_pos = Vec2::ZERO;
+
+        let screen_size = vec2(640.0, 480.0); // TODO
+        let mouse_pos = Vec2::ZERO; // TODO
 
         let responses = {
             let mut found_first = false;
-            let pressed = false;
-            let released = false;
+            let pressed = false; // TODO
+            let released = false; // TODO
 
             let double_clicked = !state.mouse_pressed
                 && pressed
+                && (state.mouse_pressed_pos - mouse_pos).length() < 10.0
                 && state.mouse_released_time.elapsed() < Duration::from_millis(500);
 
             if pressed {
+                state.mouse_pressed_pos = mouse_pos;
                 state.mouse_pressed = true;
             }
 
@@ -135,6 +148,8 @@ impl<'ctx> Oui<'ctx> {
                 .rev()
                 .map(|(id, bb)| {
                     let hovered = bb.intersect(mouse_pos);
+
+                    let relative_mouse_pos = mouse_pos - bb.top_left;
 
                     let pressed = !found_first && hovered && pressed;
                     let released =
@@ -161,6 +176,7 @@ impl<'ctx> Oui<'ctx> {
                             released,
                             double_clicked,
                             held,
+                            relative_mouse_pos,
                         },
                     )
                 })
@@ -176,18 +192,34 @@ impl<'ctx> Oui<'ctx> {
             style,
             current_line: Vec::new(),
             lines: Vec::new(),
-            parent_id: Id::from_vec2(Vec2::ZERO),
+            parent_id: Id::from_vec2(vec2(0.0, 0.0)),
         };
 
-        frame::show(&mut ui, false, style, None, None, func);
+        frame::show(&mut ui, false, style, None, None, true, func);
 
         let element = &ui.current_line[0];
 
-        let bounding_box = spacing::bounding_box(
-            element.content_box,
-            element.style.margin,
-            element.style.padding,
-        );
+        if self.fill {
+            let content_box = element.content_box.get();
+            let mut extra_x = 0.0;
+
+            if content_box.x < screen_size.x as f32 {
+                extra_x = screen_size.x as f32 - content_box.x;
+                element
+                    .content_box
+                    .set(vec2(screen_size.x as f32, element.content_box.get().y));
+            }
+
+            if content_box.y < screen_size.y as f32 {
+                element
+                    .content_box
+                    .set(vec2(element.content_box.get().x, screen_size.y as f32));
+            }
+
+            if let Some(update_with_max_width) = &element.update_with_max_width {
+                update_with_max_width(vec2(extra_x, 0.0));
+            }
+        }
 
         let cursor = Vec2::ZERO;
         let element_cursor = cursor
@@ -200,11 +232,11 @@ impl<'ctx> Oui<'ctx> {
             draw.set_pass(pass);
 
             if element.style.debug && pass == 1 {
-                debug::draw_content_boxes(&draw, cursor, element, element.content_box.y);
+                debug::draw_content_boxes(&draw, cursor, element, element.content_box.get().y);
             }
 
             if let Some(render) = element.render.as_ref() {
-                render(&mut draw, element_cursor, element.content_box.y);
+                render(&mut draw, element_cursor, element.content_box.get());
             }
         }
 

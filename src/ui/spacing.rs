@@ -34,8 +34,8 @@ impl Spacing {
         Spacing {
             top: 0.0,
             bottom: 0.0,
-            left: value / 2.0,
-            right: value / 2.0,
+            left: value,
+            right: value,
         }
     }
 
@@ -43,8 +43,8 @@ impl Spacing {
     #[inline]
     pub fn y(value: f32) -> Spacing {
         Spacing {
-            top: value / 2.0,
-            bottom: value / 2.0,
+            top: value,
+            bottom: value,
             left: 0.0,
             right: 0.0,
         }

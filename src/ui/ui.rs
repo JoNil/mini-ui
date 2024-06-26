@@ -1,26 +1,25 @@
-use crate::{
-    math::{vec2, vec4, Vec2, Vec4},
-    ui::{
-        color::{held_color, hover_color},
-        draw_api::DrawApi,
-        frame,
-        id::Id,
-        spacing, Font, Image, OuiResources, Response, Style,
-    },
+use crate::math::{vec2, vec4, Vec2, Vec4};
+use crate::ui::{
+    color::{held_color, hover_color},
+    draw_api::DrawApi,
+    frame,
+    id::Id,
+    spacing, Font, Image, OuiResources, Response, Spacing, Style,
 };
-use std::{borrow::Cow, mem};
+use std::{borrow::Cow, cell::Cell, f32::INFINITY, mem, rc::Rc};
 
-use super::Align;
+type Draw<'a> = dyn Fn(&mut DrawApi, Vec2, Vec2) + 'a;
+type UpdateWithMaxWidth = dyn Fn(Vec2);
 
-type UiDraw<'a> = dyn Fn(&mut DrawApi, Vec2, f32) + 'a;
-
-pub(crate) struct UiArea<'a> {
-    pub(crate) content_box: Vec2,
+pub(crate) struct Element<'a> {
+    pub(crate) content_box: Rc<Cell<Vec2>>,
     pub(crate) id: Option<Id>,
     pub(crate) border_extra: Vec2,
+    pub(crate) flex_x: bool,
     pub(crate) flex_y: bool,
     pub(crate) style: Style,
-    pub(crate) render: Option<Box<UiDraw<'a>>>,
+    pub(crate) render: Option<Box<Draw<'a>>>,
+    pub(crate) update_with_max_width: Option<Box<UpdateWithMaxWidth>>,
 }
 
 pub struct Ui<'a, 'ctx, 'show> {
@@ -28,8 +27,8 @@ pub struct Ui<'a, 'ctx, 'show> {
     pub(crate) draw: &'show mut DrawApi,
     pub(crate) responses: &'show Vec<(Id, Response)>,
     pub(crate) style: Style,
-    pub(crate) current_line: Vec<UiArea<'a>>,
-    pub(crate) lines: Vec<Vec<UiArea<'a>>>,
+    pub(crate) current_line: Vec<Element<'a>>,
+    pub(crate) lines: Vec<Vec<Element<'a>>>,
     pub(crate) parent_id: Id,
 }
 
@@ -60,16 +59,16 @@ impl<'a, 'ctx, 'show> Ui<'a, 'ctx, 'show> {
 
         let content_box = self
             .draw
-            .calc_text_size(text.as_ref(), text_height, f32::INFINITY, font)
+            .calc_text_size(text.as_ref(), text_height, INFINITY, font)
             + vec2(0.0, extra_top);
 
-        self.canvas(content_box, move |draw, cursor| {
+        self.canvas(content_box, move |draw, cursor, content_box| {
             draw.text(
                 text.as_ref(),
                 cursor + vec2(0.0, -extra_top),
                 content_box + vec2(0.001, 0.001),
                 text_height,
-                Align::Center,
+                super::Align::Center,
                 color,
                 font,
             );
@@ -104,20 +103,20 @@ impl<'a, 'ctx, 'show> Ui<'a, 'ctx, 'show> {
 
         let content_box = vec2(width, height);
 
-        self.canvas(content_box, move |draw, cursor| {
+        self.canvas(content_box, move |draw, cursor, content_box| {
             draw.image(cursor, content_box, image);
         });
     }
 
     #[inline]
     pub fn rectangle(&mut self, size: Vec2, color: Vec4) {
-        self.canvas(size, move |api, cursor| {
+        self.canvas(size, move |api, cursor, size| {
             api.rectangle(cursor, size, color);
         });
     }
 
     pub fn rounded_rectangle(&mut self, size: Vec2, rounding: f32, color: Vec4) {
-        self.canvas(size, move |api, cursor| {
+        self.canvas(size, move |api, cursor, size| {
             api.rectangle_rounded(cursor, size, rounding, color);
         });
     }
@@ -128,14 +127,12 @@ impl<'a, 'ctx, 'show> Ui<'a, 'ctx, 'show> {
         let text_height = style.text_height;
         let font = style.font.unwrap_or_default();
 
-        let content_box = self
-            .draw
-            .calc_text_size("  ", text_height, f32::INFINITY, font);
+        let content_box = self.draw.calc_text_size("  ", text_height, INFINITY, font);
 
-        self.flex_canvas(content_box, move |api, cursor, line_height| {
+        self.flex_canvas(content_box, move |api, cursor, content_box| {
             let middle = cursor.x + content_box.x / 2.0;
             let start = cursor.y;
-            let end = cursor.y - line_height;
+            let end = cursor.y - content_box.y;
 
             api.line(
                 vec2(middle, start),
@@ -157,17 +154,17 @@ impl<'a, 'ctx, 'show> Ui<'a, 'ctx, 'show> {
         let text_height = style.text_height;
         let font = style.font.unwrap_or_default();
 
-        let content_box = self
-            .draw
-            .calc_text_size(" ", text_height, f32::INFINITY, font);
+        let content_box = self.draw.calc_text_size(" ", text_height, INFINITY, font);
 
-        self.current_line.push(UiArea {
-            content_box,
+        self.current_line.push(Element {
+            content_box: Rc::new(Cell::new(content_box)),
             id: None,
             border_extra: Vec2::ZERO,
+            flex_x: false,
             flex_y: false,
-            style,
+            style: style.margin(Spacing::ZERO).padding(Spacing::ZERO),
             render: None,
+            update_with_max_width: None,
         });
     }
 
@@ -175,45 +172,58 @@ impl<'a, 'ctx, 'show> Ui<'a, 'ctx, 'show> {
     pub fn empty_area(&mut self, size: Vec2) {
         let style = self.style;
 
-        self.current_line.push(UiArea {
-            content_box: size,
+        self.current_line.push(Element {
+            content_box: Rc::new(Cell::new(size)),
             id: None,
             border_extra: Vec2::ZERO,
+            flex_x: false,
             flex_y: false,
-            style,
+            style: style.margin(Spacing::ZERO).padding(Spacing::ZERO),
             render: None,
+            update_with_max_width: None,
         });
     }
 
     #[inline]
     pub fn frame(&mut self, style: Style, func: impl FnOnce(&mut Ui)) {
-        frame::show(self, false, style, None, None, func);
+        frame::show(self, false, style, None, None, true, func);
     }
 
     #[inline]
     pub fn area(&mut self, style: Style, func: impl FnOnce(&mut Ui)) {
-        frame::show(self, true, style, None, None, func);
+        frame::show(self, true, style, None, None, true, func);
+    }
+
+    #[inline]
+    pub fn no_expand_frame(&mut self, style: Style, func: impl FnOnce(&mut Ui)) {
+        frame::show(self, false, style, None, None, false, func);
+    }
+
+    #[inline]
+    pub fn no_expand_area(&mut self, style: Style, func: impl FnOnce(&mut Ui)) {
+        frame::show(self, true, style, None, None, false, func);
     }
 
     #[inline]
     pub fn sized_frame(&mut self, size: Vec2, style: Style, func: impl FnOnce(&mut Ui)) {
-        frame::show(self, false, style, Some(size), None, func);
+        frame::show(self, false, style, Some(size), None, false, func);
     }
 
     #[inline]
     pub fn sized_area(&mut self, size: Vec2, style: Style, func: impl FnOnce(&mut Ui)) {
-        frame::show(self, true, style, Some(size), None, func);
+        frame::show(self, true, style, Some(size), None, false, func);
     }
 
     #[inline]
-    pub fn canvas(&mut self, content_box: Vec2, draw: impl Fn(&mut DrawApi, Vec2) + 'a) {
-        self.push_ui_area(
+    pub fn canvas(&mut self, content_box: Vec2, draw: impl Fn(&mut DrawApi, Vec2, Vec2) + 'a) {
+        self.push_ui_element(
             self.style,
             content_box,
             None,
             Vec2::ZERO,
             false,
-            move |draw_api, cursor, _| draw(draw_api, cursor),
+            false,
+            draw,
         );
     }
 
@@ -221,25 +231,26 @@ impl<'a, 'ctx, 'show> Ui<'a, 'ctx, 'show> {
     pub fn interactable_canvas(
         &mut self,
         content_box: Vec2,
-        draw: impl Fn(&mut DrawApi, Vec2) + 'a,
+        draw: impl Fn(&mut DrawApi, Vec2, Vec2) + 'a,
     ) -> Response {
         let response = self.response();
 
-        self.push_ui_area(
+        self.push_ui_element(
             self.style,
             content_box,
             Some(self.current_id()),
             Vec2::ZERO,
             false,
-            move |draw_api, cursor, _| draw(draw_api, cursor),
+            false,
+            draw,
         );
 
         response
     }
 
     #[inline]
-    pub fn flex_canvas(&mut self, content_box: Vec2, draw: impl Fn(&mut DrawApi, Vec2, f32) + 'a) {
-        self.push_ui_area(self.style, content_box, None, Vec2::ZERO, true, draw);
+    pub fn flex_canvas(&mut self, content_box: Vec2, draw: impl Fn(&mut DrawApi, Vec2, Vec2) + 'a) {
+        self.push_ui_element(self.style, content_box, None, Vec2::ZERO, false, true, draw);
     }
 
     #[inline]
@@ -255,7 +266,15 @@ impl<'a, 'ctx, 'show> Ui<'a, 'ctx, 'show> {
             style
         };
 
-        frame::show(self, false, style, size, Some(self.current_id()), func);
+        frame::show(
+            self,
+            false,
+            style,
+            size,
+            Some(self.current_id()),
+            true,
+            func,
+        );
 
         response
     }
@@ -281,7 +300,7 @@ impl<'a, 'ctx, 'show> Ui<'a, 'ctx, 'show> {
 
         let content_box = vec2(width, height);
 
-        self.interactable_canvas(content_box, move |draw, cursor| {
+        self.interactable_canvas(content_box, move |draw, cursor, content_box| {
             let tint = if response.held {
                 vec4(1.0, 1.0, 1.0, 0.6)
             } else if response.hovered {
@@ -308,31 +327,64 @@ impl<'a, 'ctx, 'show> Ui<'a, 'ctx, 'show> {
     pub fn response(&self) -> Response {
         self.responses
             .iter()
-            .find_map(|(id, resp)| (id == &self.current_id()).then_some(*resp))
+            .find_map(|(id, r)| {
+                if *id == self.current_id() {
+                    Some(r)
+                } else {
+                    None
+                }
+            })
+            .copied()
             .unwrap_or_default()
     }
 
     #[inline]
-    pub(crate) fn push_ui_area(
+    #[allow(clippy::too_many_arguments)]
+    pub(crate) fn push_ui_element(
         &mut self,
         style: Style,
         content_box: Vec2,
         id: Option<Id>,
         border_extra: Vec2,
+        flex_x: bool,
         flex_y: bool,
-        render: impl Fn(&mut DrawApi, Vec2, f32) + 'a,
+        render: impl Fn(&mut DrawApi, Vec2, Vec2) + 'a,
     ) {
-        self.current_line.push(UiArea {
-            content_box,
+        self.current_line.push(Element {
+            content_box: Rc::new(Cell::new(content_box)),
             id,
             border_extra,
+            flex_x,
             flex_y,
             style,
             render: Some(Box::new(render)),
+            update_with_max_width: None,
         });
     }
 
-    pub(crate) fn layout(mut self) -> (Vec<Vec<UiArea<'a>>>, Vec<Vec2>, Vec2) {
+    #[inline]
+    pub fn horizontal_spring(&mut self) {
+        self.current_line.push(Element {
+            content_box: Rc::new(Cell::new(Vec2::ZERO)),
+            id: None,
+            border_extra: Vec2::ZERO,
+            flex_x: true,
+            flex_y: false,
+            style: self.style.margin(Spacing::ZERO).padding(Spacing::ZERO),
+            render: None,
+            update_with_max_width: None,
+        });
+    }
+
+    #[allow(clippy::type_complexity)]
+    pub(crate) fn layout(
+        mut self,
+    ) -> (
+        Vec<Vec<Element<'a>>>,
+        Vec<Rc<Cell<Vec2>>>,
+        Vec2,
+        Vec<Box<UpdateWithMaxWidth>>,
+    ) {
         self.lines.push(self.current_line);
 
         if self.lines.len() > 1 && self.lines.last().unwrap().is_empty() {
@@ -345,20 +397,81 @@ impl<'a, 'ctx, 'show> Ui<'a, 'ctx, 'show> {
         for line in &self.lines {
             let mut line_size = Vec2::ZERO;
 
-            for op in line.iter() {
-                let bounding_box =
-                    spacing::bounding_box(op.content_box, op.style.margin, op.style.padding);
+            for element in line.iter() {
+                let bounding_box = spacing::bounding_box(
+                    element.content_box.get(),
+                    element.style.margin,
+                    element.style.padding,
+                );
 
                 line_size.x += bounding_box.width();
                 line_size.y = line_size.y.max(bounding_box.height());
             }
 
-            line_sizes.push(line_size);
+            line_sizes.push(Rc::new(Cell::new(line_size)));
 
             total_size.x = total_size.x.max(line_size.x);
             total_size.y += line_size.y;
         }
 
-        (self.lines, line_sizes, total_size)
+        let mut flex_children = Vec::<Box<UpdateWithMaxWidth>>::new();
+
+        for (line, line_size) in self.lines.iter_mut().zip(line_sizes.iter_mut()) {
+            let mut flex_count = 0;
+
+            for element in line.iter() {
+                if element.flex_x {
+                    flex_count += 1;
+                }
+            }
+
+            if flex_count > 0 {
+                let extra_line_width = total_size.x - line_size.get().x;
+                let extra_width_per_flex = extra_line_width / flex_count as f32;
+
+                let mut line_flex_elements = Vec::new();
+
+                for element in line {
+                    if element.flex_x {
+                        let extra_size = vec2(extra_width_per_flex, 0.0);
+
+                        element
+                            .content_box
+                            .set(element.content_box.get() + extra_size);
+
+                        if let Some(update_with_max_width) = element.update_with_max_width.as_ref()
+                        {
+                            update_with_max_width(extra_size);
+                        }
+
+                        line_flex_elements.push((
+                            element.content_box.clone(),
+                            element.update_with_max_width.take(),
+                        ));
+                    }
+                }
+
+                flex_children.push(Box::new({
+                    let line_size = line_size.clone();
+                    move |extra_size: Vec2| {
+                        let extra_size = vec2(extra_size.x / flex_count as f32, extra_size.y);
+
+                        for (content_box, update_with_max_width) in &line_flex_elements {
+                            content_box.set(content_box.get() + extra_size);
+
+                            if let Some(update_with_max_width) = update_with_max_width.as_ref() {
+                                update_with_max_width(extra_size);
+                            }
+                        }
+
+                        line_size.set(line_size.get() + extra_size);
+                    }
+                }));
+
+                line_size.set(line_size.get() + vec2(extra_line_width, 0.0));
+            }
+        }
+
+        (self.lines, line_sizes, total_size, flex_children)
     }
 }

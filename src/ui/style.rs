@@ -21,7 +21,6 @@ pub struct Style {
     pub align: Option<Align>,
     pub vert_align: VertAlign,
     pub font: Option<Font>,
-    pub icon_font: Option<Font>,
     pub shadow_dir: Option<Vec2>,
     pub shadow_scale: f32,
     pub shadow_color: Vec4,
@@ -33,6 +32,7 @@ impl Default for Style {
         Self {
             frame_style: FrameStyle::Rectangle,
             frame_color: DARK_GRAY,
+
             border_width: 0.0,
             border_color: MEDIUM_GRAY,
             text_color: LIGHT_GRAY,
@@ -43,7 +43,7 @@ impl Default for Style {
             align: None,
             vert_align: VertAlign::Top,
             font: None,
-            icon_font: None,
+
             shadow_dir: None,
             shadow_scale: 1.0,
             shadow_color: vec4(0.1, 0.1, 0.1, 0.9),
@@ -155,14 +155,6 @@ impl Style {
     pub fn font(&self, font: Font) -> Style {
         let mut res = *self;
         res.font = Some(font);
-        res
-    }
-
-    #[must_use]
-    #[inline]
-    pub fn icon_font(&self, icon_font: Font) -> Style {
-        let mut res = *self;
-        res.icon_font = Some(icon_font);
         res
     }
 

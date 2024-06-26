@@ -1,7 +1,9 @@
 use crate::{
     math::{Vec2, Vec4},
-    ui::{bounding_box::BoundingBox, id::Id, Align, Font, Image},
+    ui::{bounding_box::BoundingBox, id::Id, Font, Image},
 };
+
+use super::Align;
 
 pub struct DrawApi {
     pub(crate) boxes: Vec<(Id, BoundingBox)>,
@@ -22,7 +24,7 @@ impl DrawApi {
 
     #[inline]
     pub fn calc_text_size(&self, text: &str, text_height: f32, max_width: f32, font: Font) -> Vec2 {
-        Default::default()
+        todo!()
     }
 
     #[inline]

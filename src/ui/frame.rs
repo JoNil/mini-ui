@@ -1,7 +1,11 @@
-use crate::{math::{vec2, vec4, Vec2}, ui::{
-    bounding_box::BoundingBox, debug, draw_api::DrawApi, id::Id, spacing, Align, Image, Style, Ui,
-    VertAlign,
-}};
+use crate::{
+    math::{vec2, vec4, Vec2},
+    ui::{
+        bounding_box::BoundingBox, debug, draw_api::DrawApi, id::Id, spacing, ui::Element, Align,
+        Image, Style, Ui, VertAlign,
+    },
+};
+use std::{cell::Cell, rc::Rc};
 
 #[derive(Clone, Copy, Debug)]
 pub enum FrameStyle {
@@ -18,6 +22,7 @@ pub(crate) fn show(
     style: Style,
     fixed_size: Option<Vec2>,
     id: Option<Id>,
+    expand_from_below: bool,
     func: impl FnOnce(&mut Ui),
 ) {
     let current_id = ui.current_id();
@@ -33,7 +38,7 @@ pub(crate) fn show(
     };
     func(&mut child_ui);
 
-    let (lines, mut line_sizes, mut total_size) = child_ui.layout();
+    let (lines, mut line_sizes, mut total_size, flex_children) = child_ui.layout();
 
     let border_extra = if hide_frame {
         Vec2::ZERO
@@ -49,20 +54,25 @@ pub(crate) fn show(
         }
         if fixed_size.y > 0.0 {
             if fixed_size.y > total_size.y {
-                line_sizes.last_mut().unwrap().y += fixed_size.y - total_size.y;
+                let last_line = line_sizes.last_mut().unwrap();
+
+                last_line.set(last_line.get() + vec2(0.0, fixed_size.y - total_size.y));
             }
 
             total_size.y = fixed_size.y;
         }
     }
 
-    ui.push_ui_area(
-        style,
-        total_size,
+    let found_flex = !flex_children.is_empty();
+
+    ui.current_line.push(Element {
+        content_box: Rc::new(Cell::new(total_size)),
         id,
         border_extra,
-        false,
-        move |draw, parent_cursor, _| {
+        flex_x: found_flex && expand_from_below,
+        flex_y: false,
+        style,
+        render: Some(Box::new(move |draw, parent_cursor, total_size| {
             let pass = draw.pass();
 
             {
@@ -94,19 +104,19 @@ pub(crate) fn show(
 
                     for (line, line_size) in lines.iter().zip(line_sizes.iter()) {
                         let mut cursor_x = match style.align.unwrap_or(Align::Left) {
-                            Align::Right => total_size.x - line_size.x - border_extra.x,
+                            Align::Right => total_size.x - line_size.get().x - border_extra.x,
                             Align::Left => border_extra.x,
-                            Align::Center => total_size.x / 2.0 - line_size.x / 2.0,
+                            Align::Center => total_size.x / 2.0 - line_size.get().x / 2.0,
                         };
 
                         for element in line {
                             let bounding_box = spacing::bounding_box(
-                                element.content_box,
+                                element.content_box.get(),
                                 element.style.margin,
                                 element.style.padding,
                             );
 
-                            let content_height = line_size.y
+                            let content_height = line_size.get().y
                                 - element.style.margin.height()
                                 - element.style.padding.height();
 
@@ -115,9 +125,11 @@ pub(crate) fn show(
                             } else {
                                 match element.style.vert_align {
                                     VertAlign::Top => 0.0,
-                                    VertAlign::Bottom => element.content_box.y - content_height,
+                                    VertAlign::Bottom => {
+                                        element.content_box.get().y - content_height
+                                    }
                                     VertAlign::Center => {
-                                        element.content_box.y / 2.0 - content_height / 2.0
+                                        element.content_box.get().y / 2.0 - content_height / 2.0
                                     }
                                 }
                             };
@@ -152,27 +164,26 @@ pub(crate) fn show(
                             if pass == 1 || (pass == 0 && element.style.shadow_dir.is_some()) {
                                 let element_cursor = parent_cursor + cursor;
 
+                                let element_size = vec2(
+                                    element.content_box.get().x,
+                                    if element.flex_y {
+                                        content_height
+                                    } else {
+                                        element.content_box.get().y
+                                    },
+                                );
+
                                 if pass == 1 {
                                     if let Some(id) = element.id {
                                         draw.boxes.push((
                                             id,
-                                            BoundingBox::new(
-                                                element_cursor,
-                                                vec2(
-                                                    element.content_box.x,
-                                                    if element.flex_y {
-                                                        content_height
-                                                    } else {
-                                                        element.content_box.y
-                                                    },
-                                                ),
-                                            ),
+                                            BoundingBox::new(element_cursor, element_size),
                                         ));
                                     }
                                 }
 
                                 if let Some(render) = element.render.as_ref() {
-                                    render(draw, element_cursor, content_height);
+                                    render(draw, element_cursor, element_size);
                                 }
                             }
 
@@ -184,12 +195,21 @@ pub(crate) fn show(
                             cursor_x += bounding_box.width();
                         }
 
-                        cursor_y -= line_size.y;
+                        cursor_y -= line_size.get().y;
                     }
                 }
             }
+        })),
+        update_with_max_width: if found_flex && expand_from_below {
+            Some(Box::new(move |extra_size: Vec2| {
+                for flex_child in &flex_children {
+                    flex_child(extra_size);
+                }
+            }))
+        } else {
+            None
         },
-    );
+    });
 }
 
 pub(crate) fn border_extra(style: &Style, size: Vec2) -> Vec2 {
