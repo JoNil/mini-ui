@@ -13,7 +13,7 @@ const HEIGHT: usize = 1000;
 
 fn main() {
     let mut window = Window::new(
-        "Test - ESC to exit",
+        "Tiny - ESC to exit",
         WIDTH,
         HEIGHT,
         WindowOptions::default(),
