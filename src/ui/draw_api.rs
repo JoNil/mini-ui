@@ -57,10 +57,6 @@ impl<'a> DrawApi<'a> {
         assert!(!pos.x.is_nan());
         assert!(!pos.y.is_nan());
 
-        if self.pass == 0 {
-            return;
-        }
-
         self.context
             .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
         self.context
@@ -72,10 +68,6 @@ impl<'a> DrawApi<'a> {
     pub fn rectangle_rounded(&self, pos: Vec2, size: Vec2, rounding: f32, color: Vec4) {
         assert!(!pos.x.is_nan());
         assert!(!pos.y.is_nan());
-
-        if self.pass == 0 {
-            return;
-        }
 
         self.context
             .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
@@ -102,10 +94,6 @@ impl<'a> DrawApi<'a> {
         assert!(!pos.x.is_nan());
         assert!(!pos.y.is_nan());
 
-        if self.pass == 0 {
-            return;
-        }
-
         self.context.set_font_size(text_height as _);
         let extent = self.context.text_extents(text).unwrap();
 
@@ -123,10 +111,6 @@ impl<'a> DrawApi<'a> {
     pub fn rectangle_border(&self, pos: Vec2, size: Vec2, thickness: f32, color: Vec4) {
         assert!(!pos.x.is_nan());
         assert!(!pos.y.is_nan());
-
-        if self.pass == 0 {
-            return;
-        }
 
         self.context
             .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
@@ -148,10 +132,6 @@ impl<'a> DrawApi<'a> {
     ) {
         assert!(!pos.x.is_nan());
         assert!(!pos.y.is_nan());
-
-        if self.pass == 0 {
-            return;
-        }
 
         self.context
             .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);

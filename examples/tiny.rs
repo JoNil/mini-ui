@@ -1,3 +1,4 @@
+use mini_ui::cairo::Antialias;
 use mini_ui::math::{vec2, vec4, Vec2, Vec4};
 use mini_ui::{
     cairo::{self, Context, Format, ImageSurface},
@@ -39,6 +40,7 @@ fn main() {
                 cairo::FontSlant::Normal,
                 cairo::FontWeight::Normal,
             );
+            context.set_antialias(Antialias::Subpixel);
 
             state.update(&window, &context, vec2(WIDTH as f32, HEIGHT as f32));
         }
