@@ -14,15 +14,6 @@ pub const fn vec4(x: f32, y: f32, z: f32, w: f32) -> Vec4 {
 
 /// A 4-dimensional vector.
 #[derive(Clone, Copy, PartialEq)]
-#[cfg_attr(
-    any(
-        not(any(feature = "scalar-math", target_arch = "spirv")),
-        feature = "cuda"
-    ),
-    repr(align(16))
-)]
-#[cfg_attr(not(target_arch = "spirv"), repr(C))]
-#[cfg_attr(target_arch = "spirv", repr(simd))]
 pub struct Vec4 {
     pub x: f32,
     pub y: f32,
@@ -1060,7 +1051,6 @@ impl Rem<Vec4> for f32 {
     }
 }
 
-#[cfg(not(target_arch = "spirv"))]
 impl AsRef<[f32; 4]> for Vec4 {
     #[inline]
     fn as_ref(&self) -> &[f32; 4] {
@@ -1068,7 +1058,6 @@ impl AsRef<[f32; 4]> for Vec4 {
     }
 }
 
-#[cfg(not(target_arch = "spirv"))]
 impl AsMut<[f32; 4]> for Vec4 {
     #[inline]
     fn as_mut(&mut self) -> &mut [f32; 4] {
@@ -1156,7 +1145,6 @@ impl IndexMut<usize> for Vec4 {
     }
 }
 
-#[cfg(not(target_arch = "spirv"))]
 impl fmt::Display for Vec4 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(p) = f.precision() {
@@ -1171,7 +1159,6 @@ impl fmt::Display for Vec4 {
     }
 }
 
-#[cfg(not(target_arch = "spirv"))]
 impl fmt::Debug for Vec4 {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt.debug_tuple(stringify!(Vec4))

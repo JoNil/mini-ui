@@ -222,7 +222,7 @@ impl Window {
     /// Open up a window with default settings
     ///
     /// ```no_run
-    /// # use minifb::*;
+    /// # use mini_ui::window::*;
     /// let mut window = match Window::new("Test", 640, 400, WindowOptions::default()) {
     ///    Ok(win) => win,
     ///    Err(err) => {
@@ -235,7 +235,7 @@ impl Window {
     /// Open up a window that is resizeable
     ///
     /// ```no_run
-    /// # use minifb::*;
+    /// # use mini_ui::window::*;
     /// let mut window = Window::new("Test", 640, 400,
     ///     WindowOptions {
     ///        resize: true,
@@ -257,7 +257,7 @@ impl Window {
     /// # Examples
     ///
     /// ```no_run
-    /// # use minifb::*;
+    /// # use mini_ui::window::*;
     /// let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
     ///
     /// window.set_title("My New Title!");
@@ -284,7 +284,7 @@ impl Window {
     /// # Examples
     ///
     /// ```no_run
-    /// # use minifb::*;
+    /// # use mini_ui::window::*;
     /// # use std::str::FromStr;
     /// let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
     ///
@@ -319,7 +319,7 @@ impl Window {
     /// # Examples
     ///
     /// ```no_run
-    /// # use minifb::*;
+    /// # use mini_ui::window::*;
     /// fn from_u8_rgb(r: u8, g: u8, b: u8) -> u32 {
     ///     let (r, g, b) = (r as u32, g as u32, b as u32);
     ///     (r << 16) | (g << 8) | b
@@ -359,7 +359,7 @@ impl Window {
     /// # Examples
     ///
     /// ```no_run
-    /// # use minifb::*;
+    /// # use mini_ui::window::*;
     /// let mut buffer: Vec<u32> = vec![0; 640 * 400];
     ///
     /// let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
@@ -379,7 +379,7 @@ impl Window {
     /// # Examples
     ///
     /// ```no_run
-    /// # use minifb::*;
+    /// # use mini_ui::window::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
     /// while window.is_open() {
     ///     // Update window
@@ -396,7 +396,7 @@ impl Window {
     /// # Examples
     ///
     /// ```no_run
-    /// # use minifb::*;
+    /// # use mini_ui::window::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
     /// // Moves the window to pixel position 20, 20 on the screen
     /// window.set_position(20, 20);
@@ -412,7 +412,7 @@ impl Window {
     /// # Examples
     ///
     /// ```no_run
-    /// # use minifb::*;
+    /// # use mini_ui::window::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
     /// // Retrieves the current window position
     /// let (x,y) = window.get_position();
@@ -429,7 +429,7 @@ impl Window {
     /// # Examples
     ///
     /// ```no_run
-    /// # use minifb::*;
+    /// # use mini_ui::window::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
     /// // Set background color to bright red
     /// window.set_background_color(255, 0, 0);
@@ -452,7 +452,7 @@ impl Window {
     /// The problem of having a tight loop that does something like this
     ///
     /// ```no_run
-    /// # use minifb::*;
+    /// # use mini_ui::window::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
     /// loop {
     ///    window.update();
@@ -466,7 +466,7 @@ impl Window {
     /// # Examples
     ///
     /// ```no_run
-    /// # use minifb::*;
+    /// # use mini_ui::window::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
     /// // Set the target rate to 60 fps, meaning events will be polled every ~16.6 ms
     /// window.set_target_fps(60);
@@ -487,7 +487,7 @@ impl Window {
     /// # Examples
     ///
     /// ```no_run
-    /// # use minifb::*;
+    /// # use mini_ui::window::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
     /// let size = window.get_size();
     /// println!("width {} height {}", size.0, size.1);
@@ -503,7 +503,7 @@ impl Window {
     /// # Examples
     ///
     /// ```no_run
-    /// # use minifb::*;
+    /// # use mini_ui::window::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
     /// window.get_mouse_pos(MouseMode::Clamp).map(|mouse| {
     ///     println!("x {} y {}", mouse.0, mouse.1);
@@ -521,7 +521,7 @@ impl Window {
     /// # Examples
     ///
     /// ```no_run
-    /// # use minifb::*;
+    /// # use mini_ui::window::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
     /// window.get_unscaled_mouse_pos(MouseMode::Clamp).map(|mouse| {
     ///     println!("x {} y {}", mouse.0, mouse.1);
@@ -537,7 +537,7 @@ impl Window {
     /// # Examples
     ///
     /// ```no_run
-    /// # use minifb::*;
+    /// # use mini_ui::window::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
     /// let left_down = window.get_mouse_down(MouseButton::Left);
     /// println!("is left down? {}", left_down)
@@ -556,7 +556,7 @@ impl Window {
     /// # Examples
     ///
     /// ```no_run
-    /// # use minifb::*;
+    /// # use mini_ui::window::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
     /// window.get_scroll_wheel().map(|scroll| {
     ///     println!("scrolling - x {} y {}", scroll.0, scroll.1);
@@ -573,7 +573,7 @@ impl Window {
     /// # Examples
     ///
     /// ```no_run
-    /// # use minifb::*;
+    /// # use mini_ui::window::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
     /// window.set_cursor_style(CursorStyle::ResizeLeftRight);
     /// ```
@@ -587,7 +587,7 @@ impl Window {
     /// # Examples
     ///
     /// ```no_run
-    /// # use minifb::*;
+    /// # use mini_ui::window::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
     /// window.get_keys().iter().for_each(|key|
     ///         match key {
@@ -608,7 +608,7 @@ impl Window {
     /// # Examples
     ///
     /// ```no_run
-    /// # use minifb::*;
+    /// # use mini_ui::window::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
     /// window.get_keys_pressed(KeyRepeat::No).iter().for_each(|key|
     ///         match key {
@@ -628,7 +628,7 @@ impl Window {
     /// # Examples
     ///
     /// ```no_run
-    /// # use minifb::*;
+    /// # use mini_ui::window::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
     /// window.get_keys_released().iter().for_each(|key|
     ///         match key {
@@ -648,7 +648,7 @@ impl Window {
     /// # Examples
     ///
     /// ```no_run
-    /// # use minifb::*;
+    /// # use mini_ui::window::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
     /// if window.is_key_down(Key::A) {
     ///     println!("Key A is down");
@@ -665,7 +665,7 @@ impl Window {
     /// # Examples
     ///
     /// ```no_run
-    /// # use minifb::*;
+    /// # use mini_ui::window::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
     /// if window.is_key_pressed(Key::A, KeyRepeat::No) {
     ///     println!("Key A is down");
@@ -688,7 +688,7 @@ impl Window {
     /// # Examples
     ///
     /// ```no_run
-    /// # use minifb::*;
+    /// # use mini_ui::window::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
     /// window.set_key_repeat_delay(0.5) // 0.5 sec before repeat starts
     /// ```
@@ -703,7 +703,7 @@ impl Window {
     /// # Examples
     ///
     /// ```no_run
-    /// # use minifb::*;
+    /// # use mini_ui::window::*;
     /// # let mut window = Window::new("Test", 640, 400, WindowOptions::default()).unwrap();
     /// window.set_key_repeat_rate(0.01) // 0.01 sec between keys
     /// ```
