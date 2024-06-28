@@ -37,6 +37,8 @@ impl<'a> DrawApi<'a> {
 
     #[inline]
     pub fn line(&self, from: Vec2, to: Vec2, width: f32, color: Vec4) {
+        let color = self.tint * color;
+
         self.context
             .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
         self.context.set_line_width(width as _);
@@ -59,6 +61,8 @@ impl<'a> DrawApi<'a> {
     ) {
         assert!(!pos.x.is_nan());
         assert!(!pos.y.is_nan());
+
+        let color = self.tint * color;
 
         self.context
             .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
@@ -86,6 +90,8 @@ impl<'a> DrawApi<'a> {
         assert!(!pos.x.is_nan());
         assert!(!pos.y.is_nan());
 
+        let color = self.tint * color;
+
         self.context
             .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
         self.context
@@ -97,6 +103,8 @@ impl<'a> DrawApi<'a> {
     pub fn rectangle_rounded(&self, pos: Vec2, size: Vec2, rounding: f32, color: Vec4) {
         assert!(!pos.x.is_nan());
         assert!(!pos.y.is_nan());
+
+        let color = self.tint * color;
 
         self.context
             .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
@@ -122,6 +130,8 @@ impl<'a> DrawApi<'a> {
     ) {
         assert!(!pos.x.is_nan());
         assert!(!pos.y.is_nan());
+
+        let color = self.tint * color;
 
         self.context.set_font_size(text_height as _);
         let extent = self.context.text_extents(text).unwrap();
@@ -152,6 +162,8 @@ impl<'a> DrawApi<'a> {
         assert!(!pos.x.is_nan());
         assert!(!pos.y.is_nan());
 
+        let color = self.tint * color;
+
         self.context
             .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
         self.context.new_path();
@@ -173,6 +185,8 @@ impl<'a> DrawApi<'a> {
     ) {
         assert!(!pos.x.is_nan());
         assert!(!pos.y.is_nan());
+
+        let color = self.tint * color;
 
         self.context
             .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
