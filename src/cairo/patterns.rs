@@ -221,56 +221,35 @@ impl AsRef<Pattern> for Pattern {
     }
 }
 
-macro_rules! convert {
-    ($source: ident => $dest: ident = $( $variant: ident )|+ $( ($intermediate: ident) )*) => {
-        impl TryFrom<$source> for $dest {
-            type Error = $source;
+#[derive(Debug, Clone)]
+pub struct SolidPattern(Pattern);
 
-            fn try_from(pattern: $source) -> Result<Self, $source> {
-                if $( pattern.type_() == PatternType::$variant )||+ {
-                    $(
-                        let pattern = $intermediate(pattern);
-                    )*
-                    Ok($dest(pattern))
-                }
-                else {
-                    Err(pattern)
-                }
-            }
-        }
-    };
+impl Deref for SolidPattern {
+    type Target = Pattern;
+
+    #[inline]
+    fn deref(&self) -> &Pattern {
+        &self.0
+    }
 }
 
-macro_rules! pattern_type(
-    //Signals without arguments
-    ($pattern_type:ident $( = $variant: ident)*) => (
+impl AsRef<Pattern> for SolidPattern {
+    #[inline]
+    fn as_ref(&self) -> &Pattern {
+        &self.0
+    }
+}
+impl TryFrom<Pattern> for SolidPattern {
+    type Error = Pattern;
 
-        #[derive(Debug, Clone)]
-        pub struct $pattern_type(Pattern);
-
-        impl Deref for $pattern_type {
-            type Target = Pattern;
-
-            #[inline]
-            fn deref(&self) -> &Pattern {
-                &self.0
-            }
+    fn try_from(pattern: Pattern) -> Result<Self, Pattern> {
+        if pattern.type_() == PatternType::Solid {
+            Ok(SolidPattern(pattern))
+        } else {
+            Err(pattern)
         }
-
-        impl AsRef<Pattern> for $pattern_type {
-            #[inline]
-            fn as_ref(&self) -> &Pattern {
-                &self.0
-            }
-        }
-
-        $(
-            convert!(Pattern => $pattern_type = $variant);
-        )*
-    );
-);
-
-pattern_type!(SolidPattern = Solid);
+    }
+}
 
 impl SolidPattern {
     #[doc(alias = "cairo_pattern_create_rgb")]
@@ -314,8 +293,37 @@ impl SolidPattern {
     }
 }
 
-pattern_type!(Gradient);
-convert!(Pattern => Gradient = LinearGradient | RadialGradient);
+#[derive(Debug, Clone)]
+pub struct Gradient(Pattern);
+
+impl Deref for Gradient {
+    type Target = Pattern;
+
+    #[inline]
+    fn deref(&self) -> &Pattern {
+        &self.0
+    }
+}
+
+impl AsRef<Pattern> for Gradient {
+    #[inline]
+    fn as_ref(&self) -> &Pattern {
+        &self.0
+    }
+}
+
+impl TryFrom<Pattern> for Gradient {
+    type Error = Pattern;
+    fn try_from(pattern: Pattern) -> Result<Self, Pattern> {
+        if pattern.type_() == PatternType::LinearGradient
+            || pattern.type_() == PatternType::RadialGradient
+        {
+            Ok(Gradient(pattern))
+        } else {
+            Err(pattern)
+        }
+    }
+}
 
 impl Gradient {
     #[doc(alias = "cairo_pattern_add_color_stop_rgb")]
@@ -393,8 +401,28 @@ impl AsRef<Pattern> for LinearGradient {
     }
 }
 
-convert!(Pattern => LinearGradient = LinearGradient (Gradient));
-convert!(Gradient => LinearGradient = LinearGradient);
+impl TryFrom<Pattern> for LinearGradient {
+    type Error = Pattern;
+    fn try_from(pattern: Pattern) -> Result<Self, Pattern> {
+        if pattern.type_() == PatternType::LinearGradient {
+            let pattern = Gradient(pattern);
+            Ok(LinearGradient(pattern))
+        } else {
+            Err(pattern)
+        }
+    }
+}
+
+impl TryFrom<Gradient> for LinearGradient {
+    type Error = Gradient;
+    fn try_from(pattern: Gradient) -> Result<Self, Gradient> {
+        if pattern.type_() == PatternType::LinearGradient {
+            Ok(LinearGradient(pattern))
+        } else {
+            Err(pattern)
+        }
+    }
+}
 
 impl LinearGradient {
     #[doc(alias = "cairo_pattern_create_linear")]
@@ -454,8 +482,27 @@ impl AsRef<Pattern> for RadialGradient {
     }
 }
 
-convert!(Pattern => RadialGradient = RadialGradient (Gradient));
-convert!(Gradient => RadialGradient = RadialGradient);
+impl TryFrom<Pattern> for RadialGradient {
+    type Error = Pattern;
+    fn try_from(pattern: Pattern) -> Result<Self, Pattern> {
+        if pattern.type_() == PatternType::RadialGradient {
+            let pattern = Gradient(pattern);
+            Ok(RadialGradient(pattern))
+        } else {
+            Err(pattern)
+        }
+    }
+}
+impl TryFrom<Gradient> for RadialGradient {
+    type Error = Gradient;
+    fn try_from(pattern: Gradient) -> Result<Self, Gradient> {
+        if pattern.type_() == PatternType::RadialGradient {
+            Ok(RadialGradient(pattern))
+        } else {
+            Err(pattern)
+        }
+    }
+}
 
 impl RadialGradient {
     #[doc(alias = "cairo_pattern_create_radial")]
@@ -493,7 +540,35 @@ impl RadialGradient {
     }
 }
 
-pattern_type!(SurfacePattern = Surface);
+#[derive(Debug, Clone)]
+pub struct SurfacePattern(Pattern);
+
+impl Deref for SurfacePattern {
+    type Target = Pattern;
+
+    #[inline]
+    fn deref(&self) -> &Pattern {
+        &self.0
+    }
+}
+
+impl AsRef<Pattern> for SurfacePattern {
+    #[inline]
+    fn as_ref(&self) -> &Pattern {
+        &self.0
+    }
+}
+
+impl TryFrom<Pattern> for SurfacePattern {
+    type Error = Pattern;
+    fn try_from(pattern: Pattern) -> Result<Self, Pattern> {
+        if pattern.type_() == PatternType::Surface {
+            Ok(SurfacePattern(pattern))
+        } else {
+            Err(pattern)
+        }
+    }
+}
 
 impl SurfacePattern {
     #[doc(alias = "cairo_pattern_create_for_surface")]
@@ -517,7 +592,35 @@ impl SurfacePattern {
     }
 }
 
-pattern_type!(Mesh = Mesh);
+#[derive(Debug, Clone)]
+pub struct Mesh(Pattern);
+
+impl Deref for Mesh {
+    type Target = Pattern;
+
+    #[inline]
+    fn deref(&self) -> &Pattern {
+        &self.0
+    }
+}
+
+impl AsRef<Pattern> for Mesh {
+    #[inline]
+    fn as_ref(&self) -> &Pattern {
+        &self.0
+    }
+}
+
+impl TryFrom<Pattern> for Mesh {
+    type Error = Pattern;
+    fn try_from(pattern: Pattern) -> Result<Self, Pattern> {
+        if pattern.type_() == PatternType::Mesh {
+            Ok(Mesh(pattern))
+        } else {
+            Err(pattern)
+        }
+    }
+}
 
 impl Mesh {
     #[doc(alias = "cairo_pattern_create_mesh")]

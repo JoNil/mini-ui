@@ -6,7 +6,11 @@
 #![allow(non_upper_case_globals)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
-use std::ffi::{c_char, c_double, c_int, c_uchar, c_uint, c_ulong, c_void};
+use std::{
+    ffi::{c_char, c_double, c_int, c_uchar, c_uint, c_ulong, c_void},
+    fmt::{Debug, Formatter, Result},
+    marker::{PhantomData, PhantomPinned},
+};
 
 #[cfg(target_os = "windows")]
 #[cfg_attr(docsrs, doc(cfg(target_os = "windows")))]
@@ -40,29 +44,53 @@ pub type cairo_surface_type_t = c_int;
 pub type cairo_text_cluster_flags_t = c_int;
 pub type cairo_mesh_corner_t = c_uint;
 
-macro_rules! opaque {
-    ($(#[$attr:meta])*
-     $name:ident) => {
-        // https://doc.rust-lang.org/nomicon/ffi.html#representing-opaque-structs
-        $(#[$attr])*
-        #[repr(C)]
-        pub struct $name {
-            _data: [u8; 0],
-            _marker: core::marker::PhantomData<(*mut u8, core::marker::PhantomPinned)>,
-        }
-        $(#[$attr])*
-        impl ::std::fmt::Debug for $name {
-            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                write!(f, "{} @ {:?}", stringify!($name), self as *const _)
-            }
-        }
-    };
+#[repr(C)]
+pub struct cairo_t {
+    _data: [u8; 0],
+    _marker: PhantomData<(*mut u8, PhantomPinned)>,
 }
 
-opaque!(cairo_t);
-opaque!(cairo_surface_t);
-opaque!(cairo_device_t);
-opaque!(cairo_pattern_t);
+impl Debug for cairo_t {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "cairo_t @ {:?}", self as *const _)
+    }
+}
+
+#[repr(C)]
+pub struct cairo_surface_t {
+    _data: [u8; 0],
+    _marker: PhantomData<(*mut u8, PhantomPinned)>,
+}
+
+impl Debug for cairo_surface_t {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "cairo_surface_t @ {:?}", self as *const _)
+    }
+}
+
+#[repr(C)]
+pub struct cairo_device_t {
+    _data: [u8; 0],
+    _marker: PhantomData<(*mut u8, PhantomPinned)>,
+}
+
+impl Debug for cairo_device_t {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "cairo_device_t @ {:?}", self as *const _)
+    }
+}
+
+#[repr(C)]
+pub struct cairo_pattern_t {
+    _data: [u8; 0],
+    _marker: PhantomData<(*mut u8, PhantomPinned)>,
+}
+
+impl Debug for cairo_pattern_t {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "cairo_pattern_t @ {:?}", self as *const _)
+    }
+}
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -107,10 +135,53 @@ pub union cairo_path_data {
     pub point: [f64; 2],
 }
 
-opaque!(cairo_region_t);
-opaque!(cairo_font_face_t);
-opaque!(cairo_scaled_font_t);
-opaque!(cairo_font_options_t);
+#[repr(C)]
+pub struct cairo_region_t {
+    _data: [u8; 0],
+    _marker: PhantomData<(*mut u8, PhantomPinned)>,
+}
+
+impl Debug for cairo_region_t {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "cairo_region_t @ {:?}", self as *const _)
+    }
+}
+
+#[repr(C)]
+pub struct cairo_font_face_t {
+    _data: [u8; 0],
+    _marker: PhantomData<(*mut u8, PhantomPinned)>,
+}
+
+impl Debug for cairo_font_face_t {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "cairo_font_face_t @ {:?}", self as *const _)
+    }
+}
+
+#[repr(C)]
+pub struct cairo_scaled_font_t {
+    _data: [u8; 0],
+    _marker: PhantomData<(*mut u8, PhantomPinned)>,
+}
+
+impl Debug for cairo_scaled_font_t {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "cairo_scaled_font_t @ {:?}", self as *const _)
+    }
+}
+
+#[repr(C)]
+pub struct cairo_font_options_t {
+    _data: [u8; 0],
+    _marker: PhantomData<(*mut u8, PhantomPinned)>,
+}
+
+impl Debug for cairo_font_options_t {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "cairo_font_options_t @ {:?}", self as *const _)
+    }
+}
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
@@ -158,7 +229,7 @@ pub struct cairo_matrix_t {
 }
 
 impl ::std::fmt::Display for cairo_matrix_t {
-    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> Result {
         write!(f, "Matrix")
     }
 }
