@@ -101,7 +101,7 @@ impl<'a, 'draw, 'show> Ui<'a, 'draw, 'show> {
         let content_box = vec2(width, height);
 
         self.canvas(content_box, move |draw, cursor, content_box| {
-            draw.image(cursor, content_box, image);
+            draw.image(cursor, content_box, image.clone());
         });
     }
 
@@ -307,7 +307,7 @@ impl<'a, 'draw, 'show> Ui<'a, 'draw, 'show> {
             };
 
             draw.set_tint(tint);
-            draw.image(cursor, content_box, image);
+            draw.image(cursor, content_box, image.clone());
             draw.set_tint(Vec4::ONE);
         })
     }

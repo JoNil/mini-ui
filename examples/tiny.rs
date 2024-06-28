@@ -335,10 +335,10 @@ impl State {
                             let all_on = filters.iter().all(|f| *f.state);
 
                             if all_on {
-                                if ui.image_button(self.on).pressed {
+                                if ui.image_button(self.on.clone()).pressed {
                                     filters.iter_mut().for_each(|f| *f.state = false);
                                 }
-                            } else if ui.image_button(self.off).pressed {
+                            } else if ui.image_button(self.off.clone()).pressed {
                                 filters.iter_mut().for_each(|f| *f.state = true);
                             }
                         });
@@ -347,7 +347,7 @@ impl State {
                     for filter in filters {
                         ui.sized_frame(vec2(186.0, 180.0), self.style.filter_frame, |ui| {
                             ui.with_style(self.style.filter_elements, |ui| {
-                                ui.image(self.robot);
+                                ui.image(self.robot.clone());
                                 ui.text(filter.name);
                                 ui.next_line();
 
@@ -357,10 +357,10 @@ impl State {
                                 ui.next_line();
 
                                 if *filter.state {
-                                    if ui.image_button(self.on).pressed {
+                                    if ui.image_button(self.on.clone()).pressed {
                                         *filter.state = false;
                                     }
-                                } else if ui.image_button(self.off).pressed {
+                                } else if ui.image_button(self.off.clone()).pressed {
                                     *filter.state = true;
                                 }
                             });
@@ -369,7 +369,7 @@ impl State {
 
                     ui.sized_frame(vec2(186.0, 180.0), self.style.filter_frame, |ui| {
                         ui.with_style(self.style.filter_elements, |ui| {
-                            ui.image(self.no_warning);
+                            ui.image(self.no_warning.clone());
                             ui.text("Unavalible");
                             ui.next_line();
 
@@ -395,7 +395,7 @@ impl State {
                                             self.style.frame.text_height / 20.0,
                                             robot.connection_state.color(),
                                         );
-                                        ui.image(self.robot);
+                                        ui.image(self.robot.clone());
 
                                         ui.sized_area(vec2(360.0, 0.0), self.style.label, |ui| {
                                             ui.text(robot.name.clone());
@@ -406,13 +406,13 @@ impl State {
                                         });
 
                                         ui.area(self.style.icon, |ui| {
-                                            if ui.image_button(self.camera).pressed {
+                                            if ui.image_button(self.camera.clone()).pressed {
                                                 println!("Camera");
                                             }
-                                            if ui.image_button(self.compass).pressed {
+                                            if ui.image_button(self.compass.clone()).pressed {
                                                 println!("Compass");
                                             }
-                                            if ui.image_button(self.person).pressed {
+                                            if ui.image_button(self.person.clone()).pressed {
                                                 println!("Person");
                                             }
                                         });
@@ -458,9 +458,9 @@ impl State {
                                             latency_widget(ui, robot.latency);
 
                                             if robot.warning {
-                                                ui.image(self.warning);
+                                                ui.image(self.warning.clone());
                                             } else {
-                                                ui.image(self.no_warning);
+                                                ui.image(self.no_warning.clone());
                                             }
                                         });
 

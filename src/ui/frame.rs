@@ -13,7 +13,6 @@ pub enum FrameStyle {
     Rectangle,
     RoundedRectangle(f32),
     Circle,
-    Image(Image),
 }
 
 pub(crate) fn show(
@@ -227,7 +226,6 @@ pub(crate) fn border_extra(style: &Style, size: Vec2) -> Vec2 {
                 radius - size.y / 2.0 + border_width,
             )
         }
-        FrameStyle::Image(_) => vec2(border_width, border_width),
     }
 }
 
@@ -286,22 +284,6 @@ pub(crate) fn draw_frame(draw: &DrawApi, style: &Style, cursor: Vec2, size: Vec2
                     cursor,
                     radius + border_width / 2.0,
                     border_width,
-                    style.border_color,
-                );
-            }
-        }
-        FrameStyle::Image(image) => {
-            draw.image(
-                cursor + vec2(border_width, -border_width),
-                size - border_width,
-                image,
-            );
-
-            if has_border {
-                draw.rectangle_border(
-                    cursor,
-                    size - border_width,
-                    style.border_width,
                     style.border_color,
                 );
             }
