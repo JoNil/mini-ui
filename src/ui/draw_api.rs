@@ -184,10 +184,16 @@ impl<'a> DrawApi<'a> {
 
         self.context
             .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
-        self.context.new_path();
-        self.context
-            .rectangle(pos.x as _, -pos.y as _, size.x as _, size.y as _);
         self.context.set_line_width(thickness as _);
+
+        let x = (pos.x + thickness / 2.0) as f64;
+        let y = (-pos.y + thickness / 2.0) as f64;
+        let w = size.x as f64;
+        let h = size.y as f64;
+
+        self.context.new_path();
+        self.context.rectangle(x, y, w, h);
+
         self.context.stroke().unwrap();
     }
 
@@ -198,7 +204,6 @@ impl<'a> DrawApi<'a> {
         size: Vec2,
         thickness: f32,
         inner_corner_radius: f32,
-        inner_corner_segments: i32,
         color: Vec4,
     ) {
         assert!(!pos.x.is_nan());
@@ -208,9 +213,28 @@ impl<'a> DrawApi<'a> {
 
         self.context
             .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
+
+        let x = (pos.x + inner_corner_radius / 2.0) as f64;
+        let y = (-pos.y + inner_corner_radius / 2.0) as f64;
+        let w = (size.x - inner_corner_radius) as f64;
+        let h = (size.y - inner_corner_radius) as f64;
+        let r = (inner_corner_radius as f64 + thickness as f64 / 2.0)
+            .min(w / 2.0)
+            .min(h / 2.0);
+
         self.context.new_path();
-        self.context
-            .rectangle(pos.x as _, -pos.y as _, size.x as _, size.y as _);
+
+        self.context.move_to(x + r, y);
+        self.context.line_to(x + w - r, y);
+        self.context.arc(x + w - r, y + r, r, -FRAC_PI_2, 0.0);
+        self.context.line_to(x + w, y + h - r);
+        self.context.arc(x + w - r, y + h - r, r, 0.0, FRAC_PI_2);
+        self.context.line_to(x + r, y + h);
+        self.context.arc(x + r, y + h - r, r, FRAC_PI_2, PI);
+        self.context.line_to(x, y + r);
+        self.context.arc(x + r, y + r, r, PI, PI + FRAC_PI_2);
+
+        self.context.close_path();
         self.context.set_line_width(thickness as _);
         self.context.stroke().unwrap();
     }

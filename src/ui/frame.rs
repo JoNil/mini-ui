@@ -267,7 +267,6 @@ pub(crate) fn draw_frame(draw: &DrawApi, style: &Style, cursor: Vec2, size: Vec2
                     size,
                     border_width,
                     rounding,
-                    5,
                     style.border_color,
                 );
             }
