@@ -132,7 +132,18 @@ impl<'a> DrawApi<'a> {
     }
 
     #[inline]
-    pub fn image(&self, pos: Vec2, size: Vec2, image: Image) {}
+    pub fn image(&self, pos: Vec2, size: Vec2, image: Image) {
+        assert!(!pos.x.is_nan());
+        assert!(!pos.y.is_nan());
+
+        self.context
+            .set_source_surface(&image.image, 0.0, 0.0)
+            .unwrap();
+
+        self.context
+            .rectangle(pos.x as _, -pos.y as _, size.x as _, size.y as _);
+        self.context.fill().unwrap();
+    }
 
     #[inline]
     #[allow(clippy::too_many_arguments)]

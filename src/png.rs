@@ -1,6 +1,7 @@
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
-#![allow(non_snake_case)]
+#![allow(non_upper_case_globals)]
+#![allow(clippy::collapsible_else_if)]
 
 use std::{self, ptr};
 
@@ -92,31 +93,31 @@ unsafe fn stbi__compute_transparency(
     let mut p: *mut u8 = (*z).out;
 
     if out_n == 2 {
-        i = ((0) as u32);
-        while (i < pixel_count) {
+        i = (0) as u32;
+        while i < pixel_count {
             *p.offset((1) as isize) =
-                ((if ((*p.offset((0) as isize)) as i32) == ((tc[(0) as usize]) as i32) {
+                (if ((*p.offset((0) as isize)) as i32) == ((tc[(0) as usize]) as i32) {
                     0
                 } else {
                     255
-                }) as u8);
+                }) as u8;
             p = p.offset((2) as isize);
             c_runtime::preInc(&mut i);
         }
     } else {
-        i = ((0) as u32);
-        while (i < pixel_count) {
+        i = (0) as u32;
+        while i < pixel_count {
             if ((*p.offset((0) as isize)) as i32) == ((tc[(0) as usize]) as i32)
                 && ((*p.offset((1) as isize)) as i32) == ((tc[(1) as usize]) as i32)
                 && ((*p.offset((2) as isize)) as i32) == ((tc[(2) as usize]) as i32)
             {
-                *p.offset((3) as isize) = ((0) as u8);
+                *p.offset((3) as isize) = 0 as u8;
             }
             p = p.offset((4) as isize);
             c_runtime::preInc(&mut i);
         }
     }
-    return ((1) as i32);
+    return 1 as i32;
 }
 
 unsafe fn stbi__compute_transparency16(
@@ -127,11 +128,11 @@ unsafe fn stbi__compute_transparency16(
     let mut s: *mut stbi__context = (*z).s;
     let mut i: u32 = 0;
     let mut pixel_count: u32 = (*s).img_x * (*s).img_y;
-    let mut p: *mut u16 = (((*z).out) as *mut u16);
+    let mut p: *mut u16 = ((*z).out) as *mut u16;
 
     if out_n == 2 {
-        i = ((0) as u32);
-        while (i < pixel_count) {
+        i = 0 as u32;
+        while i < pixel_count {
             *p.offset((1) as isize) =
                 ((if ((*p.offset((0) as isize)) as i32) == ((tc[(0) as usize]) as i32) {
                     0
@@ -3690,7 +3691,7 @@ unsafe fn stbi_load_from_callbacks(
     return stbi__load_and_postprocess_8bit(((&mut s) as *mut stbi__context), x, y, comp, req_comp);
 }
 
-unsafe fn stbi_load_from_memory(
+pub unsafe fn stbi_load_from_memory(
     mut buffer: *const u8,
     mut len: i32,
     mut x: *mut i32,
