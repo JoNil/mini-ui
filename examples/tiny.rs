@@ -4,15 +4,35 @@ use mini_ui::{
     ui::{
         Align, Font, FrameStyle, Image, Oui, OuiContext, Spacing, Style, TextEdit, Ui, VertAlign,
     },
-    window::{Key, Window, WindowOptions},
+    window::{InputCallback, Key, Window, WindowOptions},
 };
-use std::time::Instant;
-use std::{f32::consts::TAU, slice};
+use std::{
+    f32::consts::TAU,
+    slice,
+    sync::{Arc, Mutex},
+    time::Instant,
+};
 
 const WIDTH: usize = 1900;
 const HEIGHT: usize = 1000;
 
+struct CharInput {
+    chars: Arc<Mutex<Vec<u32>>>,
+}
+
+impl InputCallback for CharInput {
+    fn add_char(&mut self, uni_char: u32) {
+        self.chars.lock().unwrap().push(uni_char);
+    }
+}
+
 fn main() {
+    let chars = Arc::new(Mutex::new(Vec::new()));
+
+    let input = CharInput {
+        chars: chars.clone(),
+    };
+
     let mut window = Window::new(
         "Tiny - ESC to exit",
         WIDTH,
@@ -20,6 +40,7 @@ fn main() {
         WindowOptions::default(),
     )
     .unwrap();
+    window.set_input_callback(Box::new(input));
 
     let mut state = State::new();
 
@@ -46,6 +67,8 @@ fn main() {
 
         println!("{:.2}", time.elapsed().as_secs_f64() * 1000.0);
 
+        chars.lock().unwrap().clear();
+
         let data = surface.data().unwrap();
         window
             .update_with_buffer(
@@ -54,6 +77,8 @@ fn main() {
                 HEIGHT,
             )
             .unwrap();
+
+        println!("{:?}", chars.lock().unwrap());
     }
 }
 

@@ -388,7 +388,7 @@ unsafe extern "system" fn wnd_proc(
                 0,
                 wnd.draw_params.buffer_width as i32,
                 wnd.draw_params.buffer_height as i32,
-                std::mem::transmute(wnd.draw_params.buffer),
+                std::mem::transmute::<*const u32, *const c_void>(wnd.draw_params.buffer),
                 &bitmap_info as *const _,
                 win32::DIB_RGB_COLORS,
                 win32::SRCCOPY,
@@ -849,7 +849,7 @@ impl Window {
 
             self.key_handler.update();
 
-            set_window_long(window, std::mem::transmute(self));
+            set_window_long(window, std::mem::transmute::<&mut Window, isize>(self));
         }
     }
 
