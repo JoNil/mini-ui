@@ -527,7 +527,6 @@ fn latency_widget(ui: &mut Ui, latency: f32) {
             -latency_ratio * TAU,
             width,
             vec4(96.6 / 100.0, 1.2 / 100.0, 2.0 / 100.0, 1.0),
-            16,
         );
 
         draw.circle_segment(
@@ -537,7 +536,6 @@ fn latency_widget(ui: &mut Ui, latency: f32) {
             -TAU,
             width,
             vec4(31.0 / 100.0, 65.5 / 100.0, 19.2 / 100.0, 1.0),
-            16,
         )
     });
 }

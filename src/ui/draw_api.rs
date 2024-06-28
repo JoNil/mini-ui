@@ -1,10 +1,10 @@
+use super::Align;
 use crate::{
     cairo::Context,
     math::{vec2, Vec2, Vec4},
     ui::{bounding_box::BoundingBox, id::Id, Font, Image},
 };
-
-use super::Align;
+use std::f32::consts::FRAC_PI_2;
 
 pub struct DrawApi<'a> {
     context: &'a Context,
@@ -40,6 +40,7 @@ impl<'a> DrawApi<'a> {
         self.context
             .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
         self.context.set_line_width(width as _);
+        self.context.new_path();
         self.context.move_to(from.x as _, -from.y as _);
         self.context.line_to(to.x as _, -to.y as _);
         self.context.stroke().unwrap();
@@ -55,12 +56,30 @@ impl<'a> DrawApi<'a> {
         to_angle_rad: f32,
         width: f32,
         color: Vec4,
-        circle_segments: i32,
     ) {
+        assert!(!pos.x.is_nan());
+        assert!(!pos.y.is_nan());
+
+        self.context
+            .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
+        self.context.set_line_width(width as _);
+
+        self.context.new_path();
+        self.context.arc(
+            (radius + width / 2.0 + pos.x) as _,
+            (radius + width / 2.0 - pos.y) as _,
+            (radius) as _,
+            (-from_angle_rad - FRAC_PI_2) as _,
+            (-to_angle_rad - FRAC_PI_2) as _,
+        );
+
+        self.context.stroke().unwrap();
     }
 
     #[inline]
-    pub fn circle(&self, pos: Vec2, radius: f32, width: f32, color: Vec4, circle_segments: i32) {}
+    pub fn circle(&self, pos: Vec2, radius: f32, width: f32, color: Vec4) {
+        self.circle_segment(pos, radius, 0.0, 2.0 * std::f32::consts::PI, width, color);
+    }
 
     #[inline]
     pub fn rectangle(&self, pos: Vec2, size: Vec2, color: Vec4) {
@@ -135,6 +154,7 @@ impl<'a> DrawApi<'a> {
 
         self.context
             .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
+        self.context.new_path();
         self.context
             .rectangle(pos.x as _, -pos.y as _, size.x as _, size.y as _);
         self.context.set_line_width(thickness as _);
@@ -156,6 +176,7 @@ impl<'a> DrawApi<'a> {
 
         self.context
             .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
+        self.context.new_path();
         self.context
             .rectangle(pos.x as _, -pos.y as _, size.x as _, size.y as _);
         self.context.set_line_width(thickness as _);

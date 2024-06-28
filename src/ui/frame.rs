@@ -280,7 +280,6 @@ pub(crate) fn draw_frame(draw: &DrawApi, style: &Style, cursor: Vec2, size: Vec2
                 radius / 2.0,
                 radius,
                 style.frame_color,
-                32,
             );
 
             if has_border {
@@ -289,7 +288,6 @@ pub(crate) fn draw_frame(draw: &DrawApi, style: &Style, cursor: Vec2, size: Vec2
                     radius + border_width / 2.0,
                     border_width,
                     style.border_color,
-                    32,
                 );
             }
         }
