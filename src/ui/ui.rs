@@ -53,19 +53,17 @@ impl<'a, 'draw, 'show> Ui<'a, 'draw, 'show> {
     ) {
         let style = self.style;
         let text_height = style.text_height;
-        let extra_top = style.text_height * 0.1;
         let text = text.into();
 
         let content_box = self
             .draw
-            .calc_text_size(text.as_ref(), text_height, INFINITY, font)
-            + vec2(0.0, extra_top);
+            .calc_text_size(text.as_ref(), text_height, INFINITY, font);
 
         self.canvas(content_box, move |draw, cursor, content_box| {
             draw.text(
                 text.as_ref(),
-                cursor + vec2(0.0, -extra_top),
-                content_box + vec2(0.001, 0.001),
+                cursor,
+                content_box,
                 text_height,
                 super::Align::Center,
                 color,

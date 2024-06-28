@@ -107,7 +107,7 @@ impl Styles {
             .border_color(GRAY)
             .frame_color(GRAY)
             .frame_style(FrameStyle::RoundedRectangle(10.0))
-            .debug(false);
+            .debug(true);
 
         Styles {
             background: base

@@ -29,11 +29,21 @@ impl<'a> DrawApi<'a> {
     pub fn calc_text_size(&self, text: &str, text_height: f32, max_width: f32, font: Font) -> Vec2 {
         self.context.set_font_size(text_height as _);
         let extent = self.context.text_extents(text).unwrap();
-        vec2(extent.width() as _, extent.height() as _)
+        vec2(
+            (extent.x_advance().max(extent.width()) as f32).min(max_width),
+            extent.y_advance().max(extent.height()) as _,
+        )
     }
 
     #[inline]
-    pub fn line(&self, from: Vec2, to: Vec2, width: f32, color: Vec4) {}
+    pub fn line(&self, from: Vec2, to: Vec2, width: f32, color: Vec4) {
+        self.context
+            .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
+        self.context.set_line_width(width as _);
+        self.context.move_to(from.x as _, -from.y as _);
+        self.context.line_to(to.x as _, -to.y as _);
+        self.context.stroke().unwrap();
+    }
 
     #[inline]
     #[allow(clippy::too_many_arguments)]
@@ -97,15 +107,26 @@ impl<'a> DrawApi<'a> {
         self.context.set_font_size(text_height as _);
         let extent = self.context.text_extents(text).unwrap();
 
-        self.context
-            .move_to(pos.x as _, (-pos.y - extent.y_bearing() as f32) as _);
+        let size = vec2(
+            (extent.x_advance().max(extent.width()) as f32).min(bounding_box.x),
+            extent.y_advance().max(extent.height()) as _,
+        );
+
+        let offset = match alignment {
+            Align::Right => bounding_box.x - size.x,
+            Align::Left => 0.0,
+            Align::Center => bounding_box.x / 2.0 - size.x / 2.0,
+        };
+
+        self.context.move_to(
+            (offset + pos.x) as _,
+            (-pos.y - extent.y_bearing() as f32) as _,
+        );
+
         self.context
             .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
         self.context.show_text(text).unwrap();
     }
-
-    #[inline]
-    pub fn lines(&self, points: &[Vec2], width: f32, color: Vec4) {}
 
     #[inline]
     pub fn rectangle_border(&self, pos: Vec2, size: Vec2, thickness: f32, color: Vec4) {
