@@ -747,7 +747,7 @@ impl Window {
     }
 
     #[inline]
-    pub fn pressed_chars(&self) -> Vec<u32> {
+    pub fn chars(&self) -> Vec<u32> {
         (self.1).0.lock().unwrap().clone()
     }
 }

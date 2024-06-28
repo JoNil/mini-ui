@@ -5,7 +5,7 @@ use crate::{
         color::{held_color, hover_color},
         frame, Ui,
     },
-    window::{Key, MouseButton, Window},
+    window::{Key, KeyRepeat, MouseButton, Window},
 };
 use std::{mem, time::Instant};
 
@@ -469,81 +469,19 @@ impl TextEdit {
         }
 
         if self.active {
-            /* TODO
-            for event in api.window_events() {
-                match event {
-                    WindowEvent::KeyEvent(k) => {
-                        if k.actions as u32 == PLUGIN_KEY_ACTION_PRESS
-                            || k.actions as u32 == PLUGIN_KEY_ACTION_REPEAT
-                        {
-                            let key = k.key
-                                | (k.mods as u32 & PLUGIN_MOD_SHIFT > 0)
-                                    .then_some(TEXTEDIT_K_SHIFT)
-                                    .unwrap_or_default()
-                                | (k.mods as u32 & PLUGIN_MOD_CONTROL > 0)
-                                    .then_some(TEXTEDIT_K_CONTROL)
-                                    .unwrap_or_default();
+            let pressed = window.get_keys_pressed(KeyRepeat::Yes);
 
-                            if KEYS_TO_PASS.contains(&key) {
-                                self.key(&calc_text_width, key);
+            let shift = window.is_key_down(Key::LeftShift);
+            let ctrl = window.is_key_down(Key::LeftCtrl);
 
-                                if string_len(&self.string) > self.limit {
-                                    self.undo()
-                                }
+            for key in pressed {
+                {
+                    let key = key as i32
+                        | shift.then_some(TEXTEDIT_K_SHIFT).unwrap_or_default()
+                        | ctrl.then_some(TEXTEDIT_K_CONTROL).unwrap_or_default();
 
-                                self.blink_timer = Instant::now();
-                            }
-
-                            match (k.key as u32, k.mods as u32) {
-                                (PLUGIN_KEY_C | PLUGIN_KEY_X, PLUGIN_MOD_CONTROL) => {
-                                    if self.select_start != self.select_end {
-                                        if let Ok(mut ctx) = ClipboardContext::new() {
-                                            let start_char_idx =
-                                                self.select_start.min(self.select_end);
-                                            let end_char_idx =
-                                                self.select_start.max(self.select_end);
-
-                                            let start_byte_idx = self
-                                                .string
-                                                .char_indices()
-                                                .nth(start_char_idx as _)
-                                                .map(|(i, _)| i)
-                                                .unwrap_or(0);
-                                            let end_byte_idx = self
-                                                .string
-                                                .char_indices()
-                                                .nth(end_char_idx as _)
-                                                .map(|(i, _)| i)
-                                                .unwrap_or(self.string.len());
-
-                                            let selected =
-                                                &self.string[start_byte_idx..end_byte_idx];
-
-                                            ctx.set_contents(selected.to_owned()).ok();
-                                        }
-
-                                        if k.key as u32 == PLUGIN_KEY_X {
-                                            self.cut();
-                                        }
-                                    }
-                                }
-                                (PLUGIN_KEY_V, PLUGIN_MOD_CONTROL) => {
-                                    if let Ok(mut ctx) = ClipboardContext::new() {
-                                        if let Ok(content) = ctx.get_contents() {
-                                            self.paste(&content);
-
-                                            if string_len(&self.string) > self.limit {
-                                                self.undo()
-                                            }
-                                        }
-                                    }
-                                }
-                                _ => (),
-                            }
-                        }
-                    }
-                    WindowEvent::CharEvent(char) => {
-                        self.key(&calc_text_width, char.c as _);
+                    if KEYS_TO_PASS.contains(&key) {
+                        self.key(&calc_text_width, key);
 
                         if string_len(&self.string) > self.limit {
                             self.undo()
@@ -551,9 +489,64 @@ impl TextEdit {
 
                         self.blink_timer = Instant::now();
                     }
+                }
+
+                match (key, ctrl) {
+                    (Key::C | Key::X, true) => {
+                        if self.select_start != self.select_end {
+                            /*if let Ok(mut ctx) = ClipboardContext::new() {
+                                let start_char_idx = self.select_start.min(self.select_end);
+                                let end_char_idx = self.select_start.max(self.select_end);
+
+                                let start_byte_idx = self
+                                    .string
+                                    .char_indices()
+                                    .nth(start_char_idx as _)
+                                    .map(|(i, _)| i)
+                                    .unwrap_or(0);
+                                let end_byte_idx = self
+                                    .string
+                                    .char_indices()
+                                    .nth(end_char_idx as _)
+                                    .map(|(i, _)| i)
+                                    .unwrap_or(self.string.len());
+
+                                let selected = &self.string[start_byte_idx..end_byte_idx];
+
+                                ctx.set_contents(selected.to_owned()).ok();
+                            }*/
+
+                            if key == Key::X {
+                                self.cut();
+                            }
+                        }
+                    }
+                    (Key::V, true) => {
+                        /*if let Ok(mut ctx) = ClipboardContext::new() {
+                            if let Ok(content) = ctx.get_contents() {
+                                self.paste(&content);
+
+                                if string_len(&self.string) > self.limit {
+                                    self.undo()
+                                }
+                            }
+                        }*/
+                    }
                     _ => (),
                 }
-            }*/
+            }
+
+            let chars = window.chars();
+
+            for char in chars {
+                self.key(&calc_text_width, char as _);
+
+                if string_len(&self.string) > self.limit {
+                    self.undo()
+                }
+
+                self.blink_timer = Instant::now();
+            }
         }
 
         let text = self.string.clone(); // TODO(JoNil) Lifetime so we con't have to clone!

@@ -4,21 +4,14 @@ use mini_ui::{
     ui::{
         Align, Font, FrameStyle, Image, Oui, OuiContext, Spacing, Style, TextEdit, Ui, VertAlign,
     },
-    window::{InputCallback, Key, Window, WindowOptions},
+    window::{Key, Window, WindowOptions},
 };
-use std::{
-    f32::consts::TAU,
-    slice,
-    sync::{Arc, Mutex},
-    time::Instant,
-};
+use std::{f32::consts::TAU, slice, time::Instant};
 
 const WIDTH: usize = 1900;
 const HEIGHT: usize = 1000;
 
 fn main() {
-    let chars = Arc::new(Mutex::new(Vec::new()));
-
     let mut window = Window::new(
         "Tiny - ESC to exit",
         WIDTH,
@@ -26,7 +19,6 @@ fn main() {
         WindowOptions::default(),
     )
     .unwrap();
-    window.set_input_callback(Box::new(input));
 
     let mut state = State::new();
 
