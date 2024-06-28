@@ -1,7 +1,11 @@
-use image::{ImageBuffer, Rgba};
-use mini_ui::{cairo::{self, Antialias, Context, Format, ImageSurface}, math::{vec2, vec4, Vec2, Vec4}, ui::{
+use mini_ui::{
+    cairo::{self, Antialias, Context, Format, ImageSurface},
+    math::{vec2, vec4, Vec2, Vec4},
+    ui::{
         Align, Font, FrameStyle, Image, Oui, OuiContext, Spacing, Style, TextEdit, Ui, VertAlign,
-    }, window::{Key, Window, WindowOptions}};
+    },
+    window::{Key, Window, WindowOptions},
+};
 use std::time::Instant;
 use std::{f32::consts::TAU, slice};
 
