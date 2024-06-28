@@ -5,7 +5,12 @@ mod key_handler;
 mod os;
 mod rate;
 
-use std::{ffi::c_void, fmt, time::Duration};
+use std::{
+    ffi::c_void,
+    fmt,
+    sync::{Arc, Mutex},
+    time::Duration,
+};
 
 #[cfg(target_os = "linux")]
 use os::posix as imp;
@@ -136,7 +141,7 @@ pub trait InputCallback {
 
 /// Window is used to open up a window. It's possible to optionally display a 32-bit buffer when
 /// the widow is set as non-resizable.
-pub struct Window(imp::Window);
+pub struct Window(imp::Window, CharInput);
 
 impl fmt::Debug for Window {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -214,6 +219,14 @@ impl WindowOptions {
     }
 }
 
+struct CharInput(Arc<Mutex<Vec<u32>>>);
+
+impl InputCallback for CharInput {
+    fn add_char(&mut self, uni_char: u32) {
+        self.0.lock().unwrap().push(uni_char);
+    }
+}
+
 impl Window {
     /// Opens up a new window
     ///
@@ -249,7 +262,15 @@ impl Window {
                 "Window transparency requires the borderless property".to_owned(),
             ));
         }
-        imp::Window::new(name, width, height, opts).map(Window)
+
+        let chars = Arc::new(Mutex::new(Vec::new()));
+
+        let mut window = imp::Window::new(name, width, height, opts)
+            .map(|imp| Window(imp, CharInput(chars.clone())))?;
+
+        window.set_input_callback(Box::new(CharInput(chars)));
+
+        Ok(window)
     }
 
     /// Allows you to set a new title of the window after creation
@@ -368,6 +389,7 @@ impl Window {
     /// ```
     #[inline]
     pub fn update(&mut self) {
+        (self.1).0.lock().unwrap().clear();
         self.0.update();
         self.0.update_rate();
     }
@@ -722,6 +744,11 @@ impl Window {
     #[inline]
     pub fn set_input_callback(&mut self, callback: Box<dyn InputCallback>) {
         self.0.set_input_callback(callback)
+    }
+
+    #[inline]
+    pub fn pressed_chars(&self) -> Vec<u32> {
+        (self.1).0.lock().unwrap().clone()
     }
 }
 

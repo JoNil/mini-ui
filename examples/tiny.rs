@@ -16,22 +16,8 @@ use std::{
 const WIDTH: usize = 1900;
 const HEIGHT: usize = 1000;
 
-struct CharInput {
-    chars: Arc<Mutex<Vec<u32>>>,
-}
-
-impl InputCallback for CharInput {
-    fn add_char(&mut self, uni_char: u32) {
-        self.chars.lock().unwrap().push(uni_char);
-    }
-}
-
 fn main() {
     let chars = Arc::new(Mutex::new(Vec::new()));
-
-    let input = CharInput {
-        chars: chars.clone(),
-    };
 
     let mut window = Window::new(
         "Tiny - ESC to exit",
@@ -65,10 +51,6 @@ fn main() {
             state.update(&window, &context, vec2(WIDTH as f32, HEIGHT as f32));
         }
 
-        println!("{:.2}", time.elapsed().as_secs_f64() * 1000.0);
-
-        chars.lock().unwrap().clear();
-
         let data = surface.data().unwrap();
         window
             .update_with_buffer(
@@ -77,8 +59,6 @@ fn main() {
                 HEIGHT,
             )
             .unwrap();
-
-        println!("{:?}", chars.lock().unwrap());
     }
 }
 
