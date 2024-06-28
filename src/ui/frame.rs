@@ -1,8 +1,7 @@
 use crate::{
     math::{vec2, vec4, Vec2},
     ui::{
-        bounding_box::BoundingBox, debug, draw_api::DrawApi, id::Id, spacing, ui::Element, Align,
-        Image, Style, Ui, VertAlign,
+        bounding_box::BoundingBox, debug, draw_api::DrawApi, id::Id, spacing, ui::Element, Align, Style, Ui, VertAlign,
     },
 };
 use std::{cell::Cell, rc::Rc};

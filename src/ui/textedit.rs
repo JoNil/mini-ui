@@ -7,7 +7,7 @@ use crate::{
     },
     window::{Key, MouseButton, Window},
 };
-use std::{ffi::CString, mem, time::Instant};
+use std::{mem, time::Instant};
 
 use super::Align;
 
