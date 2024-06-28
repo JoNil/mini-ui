@@ -136,13 +136,16 @@ impl<'a> DrawApi<'a> {
         assert!(!pos.x.is_nan());
         assert!(!pos.y.is_nan());
 
+        let scale = size / vec2(image.width as f32, image.height as f32);
+        self.context.translate(pos.x as _, -pos.y as _);
+        self.context.scale(scale.x as _, scale.y as _);
+
         self.context
             .set_source_surface(&image.image, 0.0, 0.0)
             .unwrap();
 
-        self.context
-            .rectangle(pos.x as _, -pos.y as _, size.x as _, size.y as _);
-        self.context.fill().unwrap();
+        self.context.paint().unwrap();
+        self.context.identity_matrix();
     }
 
     #[inline]
