@@ -4,7 +4,7 @@ use crate::{
     math::{vec2, Vec2, Vec4},
     ui::{bounding_box::BoundingBox, id::Id, Font, Image},
 };
-use std::f32::consts::FRAC_PI_2;
+use std::f64::consts::{FRAC_PI_2, PI};
 
 pub struct DrawApi<'a> {
     context: &'a Context,
@@ -72,9 +72,9 @@ impl<'a> DrawApi<'a> {
         self.context.arc(
             (radius + width / 2.0 + pos.x) as _,
             (radius + width / 2.0 - pos.y) as _,
-            (radius) as _,
-            (-from_angle_rad - FRAC_PI_2) as _,
-            (-to_angle_rad - FRAC_PI_2) as _,
+            radius as _,
+            -from_angle_rad as f64 - FRAC_PI_2,
+            -to_angle_rad as f64 - FRAC_PI_2,
         );
 
         self.context.stroke().unwrap();
@@ -82,7 +82,7 @@ impl<'a> DrawApi<'a> {
 
     #[inline]
     pub fn circle(&self, pos: Vec2, radius: f32, width: f32, color: Vec4) {
-        self.circle_segment(pos, radius, 0.0, 2.0 * std::f32::consts::PI, width, color);
+        self.circle_segment(pos, radius, 0.0, 2.0 * PI as f32, width, color);
     }
 
     #[inline]
@@ -108,8 +108,26 @@ impl<'a> DrawApi<'a> {
 
         self.context
             .set_source_rgba(color.x as _, color.y as _, color.z as _, color.w as _);
-        self.context
-            .rectangle(pos.x as _, -pos.y as _, size.x as _, size.y as _);
+
+        let x = pos.x as f64;
+        let y = -pos.y as f64;
+        let w = size.x as f64;
+        let h = size.y as f64;
+        let r = (rounding as f64).min(w / 2.0).min(h / 2.0);
+
+        self.context.new_path();
+
+        self.context.move_to(x + r, y);
+        self.context.line_to(x + w - r, y);
+        self.context.arc(x + w - r, y + r, r, -FRAC_PI_2, 0.0);
+        self.context.line_to(x + w, y + h - r);
+        self.context.arc(x + w - r, y + h - r, r, 0.0, FRAC_PI_2);
+        self.context.line_to(x + r, y + h);
+        self.context.arc(x + r, y + h - r, r, FRAC_PI_2, PI);
+        self.context.line_to(x, y + r);
+        self.context.arc(x + r, y + r, r, PI, PI + FRAC_PI_2);
+
+        self.context.close_path();
         self.context.fill().unwrap();
     }
 
