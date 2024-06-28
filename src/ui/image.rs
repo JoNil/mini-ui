@@ -18,7 +18,7 @@ impl Image {
         let mut height = 0;
         let mut comp = 0;
 
-        let data = unsafe {
+        let image_data = unsafe {
             stbi_load_from_memory(
                 data.as_ptr(),
                 data.len() as _,
@@ -29,12 +29,12 @@ impl Image {
             )
         };
 
-        let image = Image::load(width, height, unsafe {
-            slice::from_raw_parts(data, (4 * width * height) as _)
-        });
+        let image_slice = unsafe { slice::from_raw_parts(image_data, (4 * width * height) as _) };
+
+        let image = Image::load(width, height, image_slice);
 
         let layout = alloc::Layout::from_size_align(1, 1).expect("Bad layout");
-        unsafe { alloc::dealloc(data, layout) };
+        unsafe { alloc::dealloc(image_data, layout) };
 
         image
     }
