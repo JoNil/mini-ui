@@ -1,10 +1,64 @@
-
-
-use std::{fmt, ops::Deref};
-use ffi::CGContextRef;
 use crate::{ffi, Error, Format, Surface, SurfaceType};
+use ffi::CGContextRef;
+use std::{fmt, ops::Deref};
 
-declare_surface!(QuartzSurface, SurfaceType::Quartz);
+#[derive(Debug)]
+#[repr(transparent)]
+pub struct QuartzSurface(Surface);
+
+impl TryFrom<Surface> for QuartzSurface {
+    type Error = Surface;
+
+    #[inline]
+    fn try_from(surface: Surface) -> Result<QuartzSurface, Surface> {
+        if surface.type_() == SurfaceType::Quartz {
+            Ok(QuartzSurface(surface))
+        } else {
+            Err(surface)
+        }
+    }
+}
+
+impl QuartzSurface {
+    #[inline]
+    pub unsafe fn from_raw_full(
+        ptr: *mut crate::cairo::ffi::cairo_surface_t,
+    ) -> Result<QuartzSurface, crate::cairo::error::Error> {
+        let surface = Surface::from_raw_full(ptr)?;
+        Self::try_from(surface).map_err(|_| crate::cairo::error::Error::SurfaceTypeMismatch)
+    }
+
+    #[inline]
+    pub unsafe fn from_raw_none(
+        ptr: *mut crate::cairo::ffi::cairo_surface_t,
+    ) -> Result<QuartzSurface, crate::cairo::error::Error> {
+        let surface = Surface::from_raw_none(ptr);
+        Self::try_from(surface).map_err(|_| crate::cairo::error::Error::SurfaceTypeMismatch)
+    }
+}
+
+impl Deref for QuartzSurface {
+    type Target = Surface;
+
+    #[inline]
+    fn deref(&self) -> &Surface {
+        &self.0
+    }
+}
+
+impl AsRef<Surface> for QuartzSurface {
+    #[inline]
+    fn as_ref(&self) -> &Surface {
+        &self.0
+    }
+}
+
+impl Clone for QuartzSurface {
+    #[inline]
+    fn clone(&self) -> QuartzSurface {
+        QuartzSurface(self.0.clone())
+    }
+}
 
 impl QuartzSurface {
     #[doc(alias = "cairo_quartz_surface_create")]

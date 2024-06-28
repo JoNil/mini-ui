@@ -6,7 +6,63 @@ use crate::{
 };
 use std::ops::Deref;
 
-declare_surface!(Win32Surface, SurfaceType::Win32);
+#[derive(Debug)]
+#[repr(transparent)]
+pub struct Win32Surface(Surface);
+
+impl TryFrom<Surface> for Win32Surface {
+    type Error = Surface;
+
+    #[inline]
+    fn try_from(surface: Surface) -> Result<Win32Surface, Surface> {
+        if surface.type_() == SurfaceType::Win32 {
+            Ok(Win32Surface(surface))
+        } else {
+            Err(surface)
+        }
+    }
+}
+
+impl Win32Surface {
+    #[inline]
+    pub unsafe fn from_raw_full(
+        ptr: *mut crate::cairo::ffi::cairo_surface_t,
+    ) -> Result<Win32Surface, crate::cairo::error::Error> {
+        let surface = Surface::from_raw_full(ptr)?;
+        Self::try_from(surface).map_err(|_| crate::cairo::error::Error::SurfaceTypeMismatch)
+    }
+
+    #[inline]
+    pub unsafe fn from_raw_none(
+        ptr: *mut crate::cairo::ffi::cairo_surface_t,
+    ) -> Result<Win32Surface, crate::cairo::error::Error> {
+        let surface = Surface::from_raw_none(ptr);
+        Self::try_from(surface).map_err(|_| crate::cairo::error::Error::SurfaceTypeMismatch)
+    }
+}
+
+impl Deref for Win32Surface {
+    type Target = Surface;
+
+    #[inline]
+    fn deref(&self) -> &Surface {
+        &self.0
+    }
+}
+
+impl AsRef<Surface> for Win32Surface {
+    #[inline]
+    fn as_ref(&self) -> &Surface {
+        &self.0
+    }
+}
+
+impl Clone for Win32Surface {
+    #[inline]
+    fn clone(&self) -> Win32Surface {
+        Win32Surface(self.0.clone())
+    }
+}
 
 impl Win32Surface {
     #[doc(alias = "cairo_win32_surface_create")]

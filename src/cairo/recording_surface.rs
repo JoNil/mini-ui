@@ -2,7 +2,64 @@ use std::ops::Deref;
 
 use crate::cairo::{ffi, Content, Error, Rectangle, Surface, SurfaceType};
 
-declare_surface!(RecordingSurface, SurfaceType::Recording);
+#[derive(Debug)]
+#[repr(transparent)]
+pub struct RecordingSurface(Surface);
+
+impl TryFrom<Surface> for RecordingSurface {
+    type Error = Surface;
+
+    #[inline]
+    fn try_from(surface: Surface) -> Result<RecordingSurface, Surface> {
+        if surface.type_() == SurfaceType::Recording {
+            Ok(RecordingSurface(surface))
+        } else {
+            Err(surface)
+        }
+    }
+}
+
+impl RecordingSurface {
+    #[inline]
+    pub unsafe fn from_raw_full(
+        ptr: *mut crate::cairo::ffi::cairo_surface_t,
+    ) -> Result<RecordingSurface, crate::cairo::error::Error> {
+        let surface = Surface::from_raw_full(ptr)?;
+        Self::try_from(surface).map_err(|_| crate::cairo::error::Error::SurfaceTypeMismatch)
+    }
+
+    #[inline]
+    pub unsafe fn from_raw_none(
+        ptr: *mut crate::cairo::ffi::cairo_surface_t,
+    ) -> Result<RecordingSurface, crate::cairo::error::Error> {
+        let surface = Surface::from_raw_none(ptr);
+        Self::try_from(surface).map_err(|_| crate::cairo::error::Error::SurfaceTypeMismatch)
+    }
+}
+
+impl Deref for RecordingSurface {
+    type Target = Surface;
+
+    #[inline]
+    fn deref(&self) -> &Surface {
+        &self.0
+    }
+}
+
+impl AsRef<Surface> for RecordingSurface {
+    #[inline]
+    fn as_ref(&self) -> &Surface {
+        &self.0
+    }
+}
+
+impl Clone for RecordingSurface {
+    #[inline]
+    fn clone(&self) -> RecordingSurface {
+        RecordingSurface(self.0.clone())
+    }
+}
+
 impl RecordingSurface {
     #[doc(alias = "cairo_recording_surface_create")]
     pub fn create(content: Content, extends: Option<Rectangle>) -> Result<RecordingSurface, Error> {

@@ -26,9 +26,6 @@ pub use crate::cairo::{
     utils::{debug_reset_static_data, version_string, Version},
 };
 
-#[macro_use]
-mod surface_macros;
-#[macro_use]
 mod user_data;
 mod borrowed;
 mod constants;

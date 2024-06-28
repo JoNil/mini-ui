@@ -1,13 +1,69 @@
+use crate::cairo::{
+    ffi, utils::status_to_result, BorrowError, Error, Format, Surface, SurfaceType,
+};
 use std::{
     ops::{Deref, DerefMut},
     rc::Rc,
     slice,
 };
-use crate::cairo::{
-    ffi, utils::status_to_result, BorrowError, Error, Format, Surface, SurfaceType,
-};
 
-declare_surface!(ImageSurface, SurfaceType::Image);
+#[derive(Debug)]
+#[repr(transparent)]
+pub struct ImageSurface(Surface);
+
+impl TryFrom<Surface> for ImageSurface {
+    type Error = Surface;
+
+    #[inline]
+    fn try_from(surface: Surface) -> Result<ImageSurface, Surface> {
+        if surface.type_() == SurfaceType::Image {
+            Ok(ImageSurface(surface))
+        } else {
+            Err(surface)
+        }
+    }
+}
+
+impl ImageSurface {
+    #[inline]
+    pub unsafe fn from_raw_full(
+        ptr: *mut crate::cairo::ffi::cairo_surface_t,
+    ) -> Result<ImageSurface, crate::cairo::error::Error> {
+        let surface = Surface::from_raw_full(ptr)?;
+        Self::try_from(surface).map_err(|_| crate::cairo::error::Error::SurfaceTypeMismatch)
+    }
+
+    #[inline]
+    pub unsafe fn from_raw_none(
+        ptr: *mut crate::cairo::ffi::cairo_surface_t,
+    ) -> Result<ImageSurface, crate::cairo::error::Error> {
+        let surface = Surface::from_raw_none(ptr);
+        Self::try_from(surface).map_err(|_| crate::cairo::error::Error::SurfaceTypeMismatch)
+    }
+}
+
+impl Deref for ImageSurface {
+    type Target = Surface;
+
+    #[inline]
+    fn deref(&self) -> &Surface {
+        &self.0
+    }
+}
+
+impl AsRef<Surface> for ImageSurface {
+    #[inline]
+    fn as_ref(&self) -> &Surface {
+        &self.0
+    }
+}
+
+impl Clone for ImageSurface {
+    #[inline]
+    fn clone(&self) -> ImageSurface {
+        ImageSurface(self.0.clone())
+    }
+}
 
 impl ImageSurface {
     #[doc(alias = "cairo_image_surface_create")]
